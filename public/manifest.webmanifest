@@ -1,0 +1,32 @@
+{
+  "name": "Marmoraria Independência — Gestão",
+  "short_name": "Marmoraria",
+  "description": "Ordens de serviço, medição, produção, estoque e financeiro da Marmoraria Independência.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fcfcfb",
+  "theme_color": "#2F3437",
+  "lang": "pt-BR",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Kanban da produção", "url": "/os/kanban" },
+    { "name": "Nova OS", "url": "/os/nova" },
+    { "name": "Estoque", "url": "/estoque" }
+  ]
+}

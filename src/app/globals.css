@@ -1,0 +1,216 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   Design tokens - MARMORARIA INDEPENDENCIA
+   Paleta inspirada em pedra: neutros de grafite/areia, primaria bronze
+   (a cor do material trabalhado) e acento em azul-petroleo para dados.
+   As cores da empresa (primary/secondary/accent) sao sobrescritas em runtime
+   a partir de company_settings - ver src/components/theme/brand-theme.tsx.
+   ========================================================================== */
+
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(0.994 0.002 90);
+  --foreground: oklch(0.216 0.008 65);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.216 0.008 65);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.216 0.008 65);
+
+  --primary: oklch(0.578 0.104 57);
+  --primary-foreground: oklch(0.99 0.004 90);
+
+  --secondary: oklch(0.958 0.004 80);
+  --secondary-foreground: oklch(0.286 0.01 65);
+
+  --muted: oklch(0.962 0.003 85);
+  --muted-foreground: oklch(0.528 0.012 70);
+
+  --accent: oklch(0.556 0.062 220);
+  --accent-foreground: oklch(0.99 0.004 90);
+
+  --destructive: oklch(0.567 0.192 27);
+  --destructive-foreground: oklch(0.985 0.002 90);
+
+  --success: oklch(0.585 0.118 152);
+  --success-foreground: oklch(0.985 0.002 90);
+
+  --warning: oklch(0.718 0.148 72);
+  --warning-foreground: oklch(0.24 0.02 72);
+
+  --info: oklch(0.6 0.104 240);
+  --info-foreground: oklch(0.985 0.002 90);
+
+  --border: oklch(0.912 0.004 80);
+  --input: oklch(0.912 0.004 80);
+  --ring: oklch(0.578 0.104 57);
+
+  --sidebar: oklch(0.978 0.003 85);
+  --sidebar-foreground: oklch(0.286 0.01 65);
+  --sidebar-border: oklch(0.906 0.004 80);
+  --sidebar-accent: oklch(0.938 0.006 80);
+
+  /* Paleta de dados validada para daltonismo e contraste (modo claro). */
+  --chart-1: #B4703B;
+  --chart-2: #2563EB;
+  --chart-3: #15803D;
+  --chart-4: #B45309;
+  --chart-5: #6D28D9;
+}
+
+.dark {
+  --background: oklch(0.176 0.005 65);
+  --foreground: oklch(0.945 0.004 85);
+
+  --card: oklch(0.216 0.006 65);
+  --card-foreground: oklch(0.945 0.004 85);
+
+  --popover: oklch(0.216 0.006 65);
+  --popover-foreground: oklch(0.945 0.004 85);
+
+  --primary: oklch(0.672 0.108 58);
+  --primary-foreground: oklch(0.176 0.01 60);
+
+  --secondary: oklch(0.268 0.008 65);
+  --secondary-foreground: oklch(0.925 0.004 85);
+
+  --muted: oklch(0.262 0.006 65);
+  --muted-foreground: oklch(0.686 0.01 75);
+
+  --accent: oklch(0.642 0.072 220);
+  --accent-foreground: oklch(0.176 0.01 60);
+
+  --destructive: oklch(0.652 0.182 25);
+  --destructive-foreground: oklch(0.985 0.002 90);
+
+  --success: oklch(0.672 0.126 152);
+  --success-foreground: oklch(0.176 0.01 60);
+
+  --warning: oklch(0.782 0.142 72);
+  --warning-foreground: oklch(0.2 0.02 72);
+
+  --info: oklch(0.678 0.108 240);
+  --info-foreground: oklch(0.176 0.01 60);
+
+  --border: oklch(0.302 0.006 65);
+  --input: oklch(0.322 0.006 65);
+  --ring: oklch(0.672 0.108 58);
+
+  --sidebar: oklch(0.198 0.006 65);
+  --sidebar-foreground: oklch(0.905 0.004 85);
+  --sidebar-border: oklch(0.288 0.006 65);
+  --sidebar-accent: oklch(0.262 0.008 65);
+
+  /* Passos proprios do modo escuro - nao e inversao automatica. */
+  --chart-1: #C07633;
+  --chart-2: #3B82F6;
+  --chart-3: #22A559;
+  --chart-4: #D97706;
+  --chart-5: #8B5CF6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Numeros de dinheiro e medidas sempre alinhados */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer utilities {
+  /* Kanban: rolagem horizontal com snap no mobile */
+  .scroll-snap-x {
+    scroll-snap-type: x proximate;
+  }
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

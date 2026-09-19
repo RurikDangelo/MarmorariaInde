@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Marmoraria Independência">
+  <rect width="512" height="512" rx="96" fill="#2F3437"/>
+  <!-- Veio da pedra -->
+  <path d="M96 352c56-40 96-16 152-56s96-16 168-72" stroke="#B4703B" stroke-width="14" stroke-linecap="round" fill="none" opacity=".55"/>
+  <path d="M96 296c64-48 104-8 160-56s112-8 160-64" stroke="#B4703B" stroke-width="10" stroke-linecap="round" fill="none" opacity=".35"/>
+  <!-- Bancada -->
+  <rect x="96" y="208" width="320" height="40" rx="10" fill="#F2EDE7"/>
+  <rect x="128" y="248" width="40" height="112" rx="8" fill="#F2EDE7" opacity=".85"/>
+  <rect x="344" y="248" width="40" height="112" rx="8" fill="#F2EDE7" opacity=".85"/>
+  <text x="256" y="430" font-family="system-ui, sans-serif" font-size="88" font-weight="700" fill="#B4703B" text-anchor="middle">MI</text>
+</svg>
