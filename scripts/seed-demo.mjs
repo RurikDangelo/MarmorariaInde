@@ -174,9 +174,10 @@ async function seed() {
     const { rows } = await client.query(
       `insert into public.work_orders
          (customer_id, status_code, priority, title, deadline, address, address_number, district, city, state, notes, is_demo,
-          finished_at)
+          created_at, finished_at)
        select $1, $2, $3, $4, current_date + ($5)::int, c.address, c.address_number, c.district, c.city, c.state,
               'Ordem DEMO gerada pelo seed', true,
+              case when $2 = 'FINALIZADA' then now() - interval '23 days' else now() - interval '8 days' end,
               case when $2 = 'FINALIZADA' then now() - interval '4 days' else null end
          from public.customers c where c.id = $1
        returning id, number`,

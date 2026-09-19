@@ -47,6 +47,9 @@ Primeira versão operacional do ERP da Marmoraria Independência.
 - Auditoria: log imutável de alterações sensíveis
 
 **Qualidade**
+- Textos de catálogo, triggers e mensagens de erro em português correto
+- Helpers `format_quantity()` e `format_currency()` no banco, independentes do locale
+  do servidor (5,5 · 1.250 · R$ 5.626,00)
 - Paleta de gráficos validada para daltonismo e contraste em ambos os temas
 - Loading, empty e error states em todas as telas; tabelas viram cartões no celular
 - Seed de dados DEMO marcados com `is_demo`, removível por comando
