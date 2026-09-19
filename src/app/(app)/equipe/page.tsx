@@ -17,6 +17,8 @@ import {
   TeamMemberToggle,
   UserActiveToggle,
 } from '@/features/management/components/team-components'
+import { NewUserDialog, ResetPasswordButton } from '@/features/management/components/user-dialog'
+import { isUserManagementEnabled } from '@/lib/supabase/admin'
 import type { Profile, RoleCode, Team } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Equipe' }
@@ -25,6 +27,7 @@ export default async function TeamPage() {
   const user = await requirePermission('team.read')
   const canManageTeams = user.permissions.has('team.write')
   const canManageUsers = user.permissions.has('users.write')
+  const userManagementEnabled = isUserManagementEnabled()
   const supabase = await createClient()
 
   const [{ data: profiles }, { data: teams }, { data: members }, { data: production }, { data: workOrders }] =
@@ -83,9 +86,12 @@ export default async function TeamPage() {
         title="Equipe"
         description="Quem faz o quê, em qual equipe, com qual desempenho."
         actions={
-          canManageTeams ? (
-            <TeamDialog users={people.map((person) => ({ id: person.id, full_name: person.full_name }))} />
-          ) : undefined
+          <>
+            {canManageTeams && (
+              <TeamDialog users={people.map((person) => ({ id: person.id, full_name: person.full_name }))} />
+            )}
+            {canManageUsers && <NewUserDialog enabled={userManagementEnabled} />}
+          </>
         }
       />
 
@@ -135,8 +141,13 @@ export default async function TeamPage() {
                       </div>
 
                       {canManageUsers && (
-                        <div className="mt-1">
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
                           <UserActiveToggle profileId={person.id} active={person.active} />
+                          <ResetPasswordButton
+                            userId={person.id}
+                            email={person.email}
+                            enabled={userManagementEnabled}
+                          />
                         </div>
                       )}
                     </div>
@@ -148,8 +159,11 @@ export default async function TeamPage() {
 
           {canManageUsers && (
             <p className="mt-4 rounded-md border border-dashed px-3 py-2.5 text-xs text-muted-foreground">
-              Novos usuários são criados pelo painel de autenticação do Supabase (Authentication → Users).
-              Assim que o usuário existe, o perfil aparece aqui e o papel pode ser ajustado.
+              {userManagementEnabled
+                ? 'Use “Novo usuário” para cadastrar quem vai usar o sistema. Não existe autocadastro: ' +
+                  'só entra quem a marmoraria cria aqui. Desativar mantém todo o histórico da pessoa.'
+                : 'Para criar usuários por aqui, configure SUPABASE_SERVICE_ROLE_KEY no servidor ' +
+                  '(veja docs/05-USUARIOS-E-PERMISSOES.md). Sem ela, use Authentication → Users no painel do Supabase.'}
             </p>
           )}
         </TabsContent>

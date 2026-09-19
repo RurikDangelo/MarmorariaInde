@@ -23,6 +23,7 @@ cp .env.local.example .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API → Project URL | **Sim** |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/publishable key | **Sim** |
 | `SUPABASE_DB_URL` | Supabase → Project Settings → Database → Connection string | **Não** (só local/CI) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → service_role | **Sim, como Sensitive** (só servidor) |
 | `NEXT_PUBLIC_SITE_URL` | URL pública do app (ex.: `https://…vercel.app`) | **Sim** |
 
 > `NEXT_PUBLIC_SUPABASE_ANON_KEY` é pública por natureza — quem protege os dados é a RLS.

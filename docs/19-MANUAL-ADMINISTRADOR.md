@@ -2,8 +2,9 @@
 
 ## Primeiro dia
 
-1. **Criar usuários** — Supabase → Authentication → Users → Add user (com *Auto Confirm*)
-2. **Definir papéis** — no sistema, **Equipe → Pessoas**, ajuste o papel de cada um
+1. **Criar usuários** — no sistema, **Equipe → Novo usuário**: nome, e-mail, papel e senha
+   provisória. Entregue a senha para a pessoa; ela troca no primeiro acesso.
+2. **Ajustar papéis depois** — **Equipe → Pessoas**, seletor no card
 3. **Configurar a empresa** — **Configurações**: dados, cores, logo, tema
 4. **Cadastrar materiais** — **Estoque → Novo material**: granitos, mármores, insumos.
    Defina o **estoque mínimo** de cada um para receber alerta
@@ -25,7 +26,9 @@
 
 ## Gerenciar acesso
 
+- **Criar usuário:** Equipe → Novo usuário
 - **Trocar papel:** Equipe → Pessoas → seletor no card
+- **Resetar senha:** Equipe → Pessoas → botão Senha (define nova ou envia link por e-mail)
 - **Desativar alguém:** botão *Desativar* — o acesso cai na hora, o histórico permanece
 - **Ver quem pode o quê:** Configurações → Permissões
 

@@ -9,16 +9,19 @@
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` | não |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon/publishable key do projeto | não (protegida por RLS) |
 | `NEXT_PUBLIC_SITE_URL` | URL pública do app | não |
+| `SUPABASE_SERVICE_ROLE_KEY` | Settings → API → `service_role` | **SIM — marque como Sensitive** |
 
 ### Somente local/CI — **nunca** na Vercel
 
 | Variável | Uso |
 |---|---|
 | `SUPABASE_DB_URL` | `npm run db:push` e `npm run db:seed` |
-| `SUPABASE_SERVICE_ROLE_KEY` | scripts administrativos, se um dia forem necessários |
 
-> `service_role` ignora RLS. Se ela vazar para o browser, todo o controle de acesso cai.
-> Ela não é usada em nenhum ponto do código da aplicação.
+> `service_role` ignora RLS. Se vazar para o browser, todo o controle de acesso cai.
+> Ela é usada **apenas** em `src/lib/supabase/admin.ts`, que importa `server-only` —
+> qualquer tentativa de usá-la em componente de cliente quebra o build. Serve só para
+> criar usuário no Auth e redefinir senha, sempre atrás de `users.write`.
+> Sem ela o sistema funciona: só a criação de usuários pela tela fica indisponível.
 
 ## Passo a passo
 
