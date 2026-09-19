@@ -46,6 +46,13 @@ Primeira versão operacional do ERP da Marmoraria Independência.
 - Configurações: empresa, identidade visual, etapas do fluxo e matriz de permissões
 - Auditoria: log imutável de alterações sensíveis
 
+**Acesso**
+- Criação de usuários pelo próprio sistema (Equipe → Novo usuário), com senha
+  provisória, definição de papel e redefinição de senha
+- `service_role` isolada em `src/lib/supabase/admin.ts` com `import 'server-only'`
+- O papel nunca vem do metadata do Auth: todo usuário nasce `OPERACIONAL`
+  (exceto o primeiro do sistema)
+
 **Qualidade**
 - Textos de catálogo, triggers e mensagens de erro em português correto
 - Helpers `format_quantity()` e `format_currency()` no banco, independentes do locale

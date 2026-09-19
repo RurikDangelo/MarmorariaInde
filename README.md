@@ -9,6 +9,10 @@ ORÇAMENTO → APROVAÇÃO → MEDIÇÃO → CONFERÊNCIA → PLANEJAMENTO → S
 → CORTE → ACABAMENTO → CONFERÊNCIA → EXPEDIÇÃO → INSTALAÇÃO → FINALIZAÇÃO
 ```
 
+## Produção
+
+**https://marmoraria-independencia.vercel.app** — deploy automático a cada push em `main`.
+
 ## Stack
 
 Next.js 16 (App Router, RSC) · React 19 · TypeScript · Tailwind CSS v4 ·

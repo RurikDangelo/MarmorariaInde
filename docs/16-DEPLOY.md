@@ -1,5 +1,11 @@
 # 16 — Deploy
 
+> **Ambiente atual**
+> Produção: https://marmoraria-independencia.vercel.app
+> Projeto Vercel: `tivexy/marmoraria-independencia` · repositório: `RurikDangelo/MarmorariaInde`
+> Supabase: projeto `gzkeermtmkpgnxwwxgaq` (região sa-east-1)
+> O deploy é automático a cada push na branch `main`.
+
 ## Variáveis de ambiente
 
 ### Na Vercel (Production, Preview e Development)
@@ -53,8 +59,8 @@ O preset do Next.js já cobre build e runtime; não há configuração especial.
 Depois de saber a URL de produção:
 
 **Authentication → URL Configuration**
-- Site URL: `https://<seu-app>.vercel.app`
-- Redirect URLs: `https://<seu-app>.vercel.app/auth/callback`
+- Site URL: `https://marmoraria-independencia.vercel.app`
+- Redirect URLs: `https://marmoraria-independencia.vercel.app/auth/callback`
 
 Sem isso, o link de recuperação de senha volta para `localhost`.
 
