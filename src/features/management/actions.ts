@@ -262,6 +262,12 @@ const settingsSchema = z.object({
   secondary_color: hexColor,
   accent_color: hexColor,
   default_theme: z.enum(['light', 'dark', 'system']).default('system'),
+  login_domain: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/, 'Informe um domínio válido, ex.: marmoraria.app')
+    .default('marmoraria.app'),
   quote_validity_days: z.coerce.number().int().min(1).max(365).default(15),
   default_waste_pct: z.coerce.number().min(0).max(100).default(10),
 })

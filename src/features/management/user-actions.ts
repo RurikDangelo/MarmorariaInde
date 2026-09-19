@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { assertPermission } from '@/lib/auth/session'
 import { formToObject, zodToFieldErrors, type ActionState } from '@/features/work-orders/schema'
 import { PERMISSIONS } from '@/lib/auth/permissions'
+import { buildLoginEmail, DEFAULT_LOGIN_DOMAIN } from '@/features/management/login-email'
 
 const ROLE_CODES = [
   'ADMINISTRADOR',
@@ -20,7 +21,7 @@ const ROLE_CODES = [
 ] as const
 
 const createUserSchema = z.object({
-  email: z.string().trim().toLowerCase().email('Informe um e-mail válido'),
+  login: z.string().trim().min(2, 'Informe o e-mail ou o nome de usuário'),
   full_name: z.string().trim().min(2, 'Informe o nome da pessoa'),
   role: z.enum(ROLE_CODES),
   password: z
@@ -67,7 +68,23 @@ export async function createUser(_prev: ActionState, formData: FormData): Promis
   const admin = createAdminClient()
   if (!admin) return { error: NOT_CONFIGURED }
 
-  const { email, full_name, role, password, job_title, phone } = parsed.data
+  const { login, full_name, role, password, job_title, phone } = parsed.data
+
+  const supabaseForSettings = await createClient()
+  const { data: settings } = await supabaseForSettings
+    .from('company_settings')
+    .select('login_domain')
+    .eq('id', true)
+    .maybeSingle<{ login_domain: string }>()
+
+  const email = buildLoginEmail(login, settings?.login_domain ?? DEFAULT_LOGIN_DOMAIN)
+
+  if (!z.string().email().safeParse(email).success) {
+    return {
+      error: `"${login}" não formou um acesso válido (${email}). Use letras, números, ponto ou hífen.`,
+      fieldErrors: { login: 'Acesso inválido' },
+    }
+  }
 
   const { data, error } = await admin.auth.admin.createUser({
     email,
@@ -79,9 +96,16 @@ export async function createUser(_prev: ActionState, formData: FormData): Promis
   if (error) {
     const message = error.message.toLowerCase()
     if (message.includes('already been registered') || message.includes('already exists')) {
-      return { error: `Já existe um usuário com o e-mail ${email}.` }
+      return { error: `Já existe um acesso com ${email}.` }
     }
-    return { error: `Não foi possível criar o usuário: ${error.message}` }
+    if (message.includes('invalid') && message.includes('email')) {
+      return {
+        error:
+          `O Supabase recusou o endereço ${email}. Troque o "domínio de login" em ` +
+          'Configurações → Empresa por um domínio que ele aceite (ex.: um domínio real da empresa).',
+      }
+    }
+    return { error: `Não foi possível criar o acesso: ${error.message}` }
   }
 
   const userId = data.user?.id
@@ -104,7 +128,7 @@ export async function createUser(_prev: ActionState, formData: FormData): Promis
 
   revalidatePath('/equipe')
   return {
-    success: `${full_name} já pode entrar com ${email}. Peça para trocar a senha no primeiro acesso.`,
+    success: `${full_name} já pode entrar com ${email}. Entregue a senha e peça para trocar no primeiro acesso.`,
   }
 }
 

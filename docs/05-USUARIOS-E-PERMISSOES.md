@@ -65,6 +65,25 @@ marcando *Auto Confirm User*.
 
 > Não existe autocadastro público. A marmoraria decide quem entra.
 
+### Acesso sem e-mail real
+
+O medidor e o instalador normalmente não têm e-mail da empresa. No campo
+**Acesso** você pode digitar só um nome de usuário:
+
+```
+joao.silva  →  joao.silva@marmoraria.app
+```
+
+O domínio vem de **Configurações → Domínio de login**. Esses endereços não
+recebem e-mail: a senha provisória é entregue pelo administrador, e a
+redefinição é feita pelo botão **Senha** na lista de pessoas.
+
+Se você digitar um e-mail real (com `@`), ele é usado como está — e aí a pessoa
+também consegue usar o "Esqueci a senha".
+
+> O Supabase valida o domínio do e-mail no cadastro. Se ele recusar o domínio
+> configurado, a tela avisa e basta trocar em Configurações — sem deploy.
+
 ### Por que isso exige a service_role
 
 Criar usuário no Auth é operação administrativa: a API pública só cria conta se

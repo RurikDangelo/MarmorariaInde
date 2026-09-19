@@ -30,6 +30,12 @@ export default async function TeamPage() {
   const userManagementEnabled = isUserManagementEnabled()
   const supabase = await createClient()
 
+  const { data: settings } = await supabase
+    .from('company_settings')
+    .select('login_domain')
+    .eq('id', true)
+    .maybeSingle<{ login_domain: string }>()
+
   const [{ data: profiles }, { data: teams }, { data: members }, { data: production }, { data: workOrders }] =
     await Promise.all([
       user.permissions.has('users.read')
@@ -90,7 +96,12 @@ export default async function TeamPage() {
             {canManageTeams && (
               <TeamDialog users={people.map((person) => ({ id: person.id, full_name: person.full_name }))} />
             )}
-            {canManageUsers && <NewUserDialog enabled={userManagementEnabled} />}
+            {canManageUsers && (
+              <NewUserDialog
+                enabled={userManagementEnabled}
+                loginDomain={settings?.login_domain ?? 'marmoraria.app'}
+              />
+            )}
           </>
         }
       />

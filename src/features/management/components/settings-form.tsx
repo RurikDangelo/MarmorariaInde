@@ -136,6 +136,20 @@ export function SettingsForm({ settings }: { settings: CompanySettings }) {
                 defaultValue={settings.default_waste_pct}
               />
             </Field>
+
+            <Field
+              label="Domínio de login"
+              span="full"
+              error={error('login_domain')}
+              hint="Usado quando você cria um acesso por nome de usuário: joao.silva vira joao.silva@este-domínio. Esses endereços não recebem e-mail."
+            >
+              <Input
+                name="login_domain"
+                defaultValue={settings.login_domain ?? 'marmoraria.app'}
+                className="font-mono lowercase"
+                placeholder="marmoraria.app"
+              />
+            </Field>
           </FormSection>
         </CardContent>
       </Card>

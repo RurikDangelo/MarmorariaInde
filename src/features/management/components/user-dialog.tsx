@@ -21,6 +21,7 @@ import { Field, FormSection } from '@/components/shared/form'
 import { PhoneInput } from '@/components/shared/inputs'
 import { createUser, resetUserPassword, sendPasswordReset } from '@/features/management/user-actions'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions'
+import { buildLoginEmail } from '@/features/management/login-email'
 import type { RoleCode } from '@/types/database'
 
 /** Senha provisória legível: duas sílabas + número. Fácil de ditar no telefone. */
@@ -31,16 +32,24 @@ function suggestPassword(): string {
   return `${pick()}-${pick()}-${number}`
 }
 
-export function NewUserDialog({ enabled }: { enabled: boolean }) {
+export function NewUserDialog({
+  enabled,
+  loginDomain,
+}: {
+  enabled: boolean
+  loginDomain: string
+}) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [password, setPassword] = React.useState(suggestPassword)
   const [role, setRole] = React.useState<RoleCode>('OPERACIONAL')
+  const [login, setLogin] = React.useState('')
 
   const [state, formAction, pending] = useActionForm(createUser, {
     onSuccess: () => {
       setOpen(false)
       setPassword(suggestPassword())
+      setLogin('')
       router.refresh()
     },
   })
@@ -80,8 +89,8 @@ export function NewUserDialog({ enabled }: { enabled: boolean }) {
         <DialogHeader>
           <DialogTitle>Novo usuário</DialogTitle>
           <DialogDescription>
-            A pessoa entra com o e-mail e a senha provisória. Não existe autocadastro: quem entra no
-            sistema é quem a marmoraria cadastra aqui.
+            Não precisa de e-mail real: digite um nome de usuário e o sistema monta o acesso.
+            A pessoa entra com esse acesso e a senha provisória que você entregar.
           </DialogDescription>
         </DialogHeader>
 
@@ -93,8 +102,27 @@ export function NewUserDialog({ enabled }: { enabled: boolean }) {
               <Input name="full_name" required autoFocus placeholder="Ex.: João Marmorista" />
             </Field>
 
-            <Field label="E-mail" required span="full" error={state.fieldErrors?.email}>
-              <Input name="email" type="email" required placeholder="pessoa@marmoraria.com.br" />
+            <Field
+              label="Acesso"
+              required
+              span="full"
+              error={state.fieldErrors?.login}
+              hint={
+                login.includes('@')
+                  ? 'E-mail real: a pessoa também poderá usar "Esqueci a senha".'
+                  : buildLoginEmail(login, loginDomain)
+                    ? `Vai entrar como: ${buildLoginEmail(login, loginDomain)} — sem e-mail, a senha é entregue por você.`
+                    : `Digite um nome de usuário (ex.: joao.silva) ou um e-mail real.`
+              }
+            >
+              <Input
+                name="login"
+                value={login}
+                onChange={(event) => setLogin(event.target.value)}
+                required
+                placeholder="joao.silva"
+                autoComplete="off"
+              />
             </Field>
 
             <Field label="Função na marmoraria">

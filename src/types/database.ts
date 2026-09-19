@@ -94,6 +94,7 @@ export interface CompanySettings {
   secondary_color: string
   accent_color: string
   default_theme: 'light' | 'dark' | 'system'
+  login_domain: string
   quote_validity_days: number
   default_waste_pct: number
   low_stock_alert: boolean
