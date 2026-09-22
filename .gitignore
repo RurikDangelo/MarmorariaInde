@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pacotes gerados para o SQL Editor (derivados de supabase/migrations)
+/supabase/bundles/
