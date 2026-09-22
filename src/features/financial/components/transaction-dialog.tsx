@@ -13,18 +13,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Field, FormSection } from '@/components/shared/form'
 import { MoneyInput } from '@/components/shared/inputs'
 import { saveTransaction } from '@/features/financial/actions'
+import { PAYMENT_METHODS } from '@/lib/labels'
 import type { FinancialAccount, FinancialCategory, FinancialTransaction } from '@/types/database'
-
-const PAYMENT_METHODS = [
-  { value: 'PIX', label: 'PIX' },
-  { value: 'DINHEIRO', label: 'Dinheiro' },
-  { value: 'DEBITO', label: 'Cartão de débito' },
-  { value: 'CREDITO', label: 'Cartão de crédito' },
-  { value: 'BOLETO', label: 'Boleto' },
-  { value: 'TRANSFERENCIA', label: 'Transferência' },
-  { value: 'CHEQUE', label: 'Cheque' },
-  { value: 'OUTRO', label: 'Outro' },
-]
 
 export function TransactionDialog({
   categories,

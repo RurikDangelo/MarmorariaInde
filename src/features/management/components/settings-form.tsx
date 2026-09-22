@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Field, FormActions, FormSection } from '@/components/shared/form'
 import { DocumentInput, PhoneInput } from '@/components/shared/inputs'
 import { saveCompanySettings } from '@/features/management/actions'
+import { LogoField } from './logo-field'
 import type { CompanySettings } from '@/types/database'
 
 export function SettingsForm({ settings }: { settings: CompanySettings }) {
@@ -88,8 +89,8 @@ export function SettingsForm({ settings }: { settings: CompanySettings }) {
               error={error('accent_color')}
             />
 
-            <Field label="Logo (URL)" hint="Envie a imagem no bucket 'empresa' do Storage e cole o link público">
-              <Input name="logo_url" defaultValue={settings.logo_url ?? ''} placeholder="https://…" />
+            <Field label="Logo" hint="Sai no topo da OS emitida, do orçamento e na barra lateral">
+              <LogoField name="logo_url" defaultValue={settings.logo_url ?? ''} />
             </Field>
             <Field label="Favicon (URL)">
               <Input name="favicon_url" defaultValue={settings.favicon_url ?? ''} placeholder="https://…" />

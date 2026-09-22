@@ -15,7 +15,8 @@ const optionalString = z
 
 const recordSchema = z.object({
   work_order_id: z.string().uuid(),
-  work_order_item_id: optionalString,
+  /** Peca da montagem (opcional: sem peca = toda a OS). */
+  piece_id: optionalString.refine((value) => !value || z.guid().safeParse(value).success, 'Peça inválida'),
   step_code: z.string().min(1, 'Selecione a etapa'),
   responsible_id: optionalString,
   team_id: optionalString,
@@ -43,8 +44,24 @@ export async function startProductionStep(
   }
 
   const supabase = await createClient()
+
+  // a peca precisa ser desta OS; o produto dela vai junto para os relatorios
+  let lineItemId: string | null = null
+  if (parsed.data.piece_id) {
+    const { data: piece } = await supabase
+      .from('line_item_pieces')
+      .select('line_item_id, line_item:line_items!line_item_pieces_line_item_id_fkey ( work_order_id )')
+      .eq('id', parsed.data.piece_id)
+      .maybeSingle<{ line_item_id: string; line_item: { work_order_id: string | null } | null }>()
+    if (!piece || piece.line_item?.work_order_id !== parsed.data.work_order_id) {
+      return { error: 'A peça escolhida não é desta OS.' }
+    }
+    lineItemId = piece.line_item_id
+  }
+
   const { error } = await supabase.from('production_records').insert({
     ...parsed.data,
+    line_item_id: lineItemId,
     status: 'EM_ANDAMENTO',
     started_at: new Date().toISOString(),
   })

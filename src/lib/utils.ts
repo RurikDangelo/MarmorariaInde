@@ -148,13 +148,25 @@ export function initials(name: string | null | undefined): string {
     .join('')
 }
 
-/** Converte "2,45" ou "2.45" para number. Aceita entrada do usuario brasileiro. */
+/**
+ * Converte "2,45", "2.45", "1.234,56" ou 620.5 para number.
+ * Com virgula, e o formato brasileiro (ponto = milhar). Sem virgula, o ponto e
+ * o separador decimal — e o que chega de <input type="number"> e dos campos de
+ * dinheiro, e o que o marmorista digita no teclado numerico ("2.45" = 2,45 m).
+ */
 export function parseDecimal(value: string | number | null | undefined): number {
-  if (typeof value === 'number') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
   if (!value) return 0
-  const normalized = String(value).replace(/\s/g, '').replace(/\./g, '').replace(',', '.')
+  const raw = String(value).replace(/\s/g, '')
+  const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw
   const n = Number(normalized)
   return Number.isFinite(n) ? n : 0
+}
+
+/** Metros com ate 3 casas, sem zeros sobrando: 2450 -> "2,45", 1234 -> "1,234". */
+export function mmToMetersInput(mm: number | null | undefined): string {
+  if (!mm) return ''
+  return (mm / 1000).toFixed(3).replace(/\.?0+$/, '').replace('.', ',')
 }
 
 /** Aceita metros ("2,45") ou milimetros ("2450") e devolve sempre milimetros. */

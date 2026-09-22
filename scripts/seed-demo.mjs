@@ -6,14 +6,8 @@
  *
  * NUNCA rode isto em produção com dados reais.
  */
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import pg from 'pg'
-import dotenv from 'dotenv'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const root = join(__dirname, '..')
-dotenv.config({ path: join(root, '.env.local'), quiet: true })
+import { createClient } from './lib/db.mjs'
+import { seedDemoComposition } from './lib/seed-composition.mjs'
 
 const connectionString = process.env.SUPABASE_DB_URL
 if (!connectionString || connectionString.includes('SENHA')) {
@@ -22,14 +16,10 @@ if (!connectionString || connectionString.includes('SENHA')) {
 }
 
 const clean = process.argv.includes('--limpar')
-const client = new pg.Client({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-  application_name: 'marmoraria-seed',
-})
+const client = createClient(connectionString, 'marmoraria-seed')
 
-// Apenas tabelas que tem a coluna is_demo. Os filhos (itens de OS, itens de
-// medicao, itens de orcamento) somem por cascade ao apagar o pai.
+// Apenas tabelas que tem a coluna is_demo. Os filhos (itens de OS, ambientes e
+// produtos da montagem, itens de medicao) somem por cascade ao apagar o pai.
 const DEMO_TABLES = [
   'stock_movements',
   'production_records',
@@ -39,6 +29,7 @@ const DEMO_TABLES = [
   'action_plans',
   'work_orders',
   'quotes',
+  'products',
   'stock_items',
   'materials',
   'customers',
@@ -142,21 +133,8 @@ async function seed() {
     ],
   )
 
-  // ------------------------------------------------------------- orçamento
-  const { rows: quoteRows } = await client.query(
-    `insert into public.quotes (customer_id, status, issue_date, notes, is_demo)
-     values ($1, 'ENVIADO', current_date - 3, 'Orçamento DEMO de bancada + ilha', true)
-     returning id, number`,
-    [customers[4]],
-  )
-  await client.query(
-    `insert into public.quote_items
-       (quote_id, sort_order, description, environment, material_id, length_mm, width_mm, quantity, pricing_mode, unit_price, finish, edge)
-     values
-       ($1, 0, 'Bancada da pia', 'Cozinha', $2, 2400, 600, 1, 'M2', 620, 'Polido', 'Boleada'),
-       ($1, 1, 'Ilha central', 'Cozinha', $2, 1800, 900, 1, 'M2', 620, 'Polido', 'Meia-esquadria')`,
-    [quoteRows[0].id, materials[0]],
-  )
+  // ---------------------------------------- orçamento (montagem da impressão)
+  const quote = await seedDemoComposition(client, { customerId: customers[4], materialId: materials[0] })
 
   // ----------------------------------------------------------- ordens de OS
   const orders = []
@@ -208,6 +186,12 @@ async function seed() {
        values ($1,$2,$3,$4,$5,$6,$7,'M2',$8,$9,$10,$11,$12,$13,$14,'PENDENTE')`,
       [orders[orderIndex].id, description, environment, materialId, length, width, qty, price, finish, edge, hasSink, sinkType, sinkQty, hasCooktop],
     )
+  }
+
+  // As OS DEMO nascem com itens antigos e passam pela mesma migração da produção
+  // (ambiente + produto + material + peça, com o mesmo total).
+  for (const order of orders) {
+    await client.query('select public.migrate_document(null, $1)', [order.id])
   }
 
   // --------------------------------------------------------------- medições
@@ -340,6 +324,8 @@ async function seed() {
   console.log(`  - ${materials.length} materiais`)
   console.log(`  - ${slabs.length} chapas + 3 insumos`)
   console.log(`  - ${orders.length} ordens de serviço com itens`)
+  console.log(`  - orçamento ${quote.number} com a montagem "Pia e Balcão" (${quote.total})`)
+  console.log(`  - ${quote.products} produtos, acabamentos, serviços, revendas e insumos no cadastro`)
   console.log('  - 2 medições, 6 apontamentos de produção, 2 instalações')
   console.log('  - 6 lançamentos financeiros, 2 planos de ação')
   console.log('\n  Para remover: npm run db:seed -- --limpar\n')

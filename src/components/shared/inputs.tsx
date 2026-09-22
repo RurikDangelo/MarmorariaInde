@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { cn, maskDocument, maskPhone, maskZipCode, parseDecimal } from '@/lib/utils'
+import { cn, maskDocument, maskPhone, maskZipCode, mmToMetersInput, parseDecimal } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 
 /** Campo de dinheiro. Digita em centavos e formata em R$ automaticamente. */
@@ -72,7 +72,8 @@ export function DimensionInput({
   defaultValueMm?: number
   onMmChange?: (mm: number) => void
 }) {
-  const [text, setText] = React.useState(() => (defaultValueMm ? (defaultValueMm / 1000).toFixed(2).replace('.', ',') : ''))
+  // 3 casas: reabrir e salvar 1,234 m nao pode virar 1,23 m
+  const [text, setText] = React.useState(() => mmToMetersInput(defaultValueMm))
   const mm = React.useMemo(() => Math.round(parseDecimal(text) * 1000), [text])
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {

@@ -152,6 +152,12 @@ export function CommandMenu({ permissions }: { permissions: string[] }) {
                 Nova ordem de serviço
                 <CommandShortcut>OS</CommandShortcut>
               </CommandItem>
+              {permissionSet.has('quotes.write') && (
+                <CommandItem value="novo orcamento criar proposta" onSelect={() => go('/orcamentos/novo')}>
+                  <Plus />
+                  Novo orçamento
+                </CommandItem>
+              )}
               {permissionSet.has('customers.write') && (
                 <CommandItem value="novo cliente cadastrar" onSelect={() => go('/clientes?novo=1')}>
                   <Plus />

@@ -68,7 +68,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             )}
             {user.permissions.has('work_orders.write') && (
               <Button asChild>
-                <Link href="/os/nova">
+                <Link href={`/os/nova?cliente=${customer.id}`}>
                   <Plus />
                   Nova OS
                 </Link>

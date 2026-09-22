@@ -70,8 +70,9 @@ export async function saveInstallation(_prev: ActionState, formData: FormData): 
 }
 
 /**
- * Conclui a instalação: marca o checklist como aprovado, encerra a OS
- * e registra tudo na timeline.
+ * Conclui a instalação: marca o checklist como aprovado, encerra a OS e marca
+ * as peças como instaladas. Numa função do banco (finish_installation) porque
+ * quem instala não pode editar a OS inteira — antes a OS não finalizava.
  */
 export async function finishInstallation(
   installationId: string,
@@ -84,27 +85,8 @@ export async function finishInstallation(
   }
 
   const supabase = await createClient()
-  const now = new Date().toISOString()
-
-  const { error } = await supabase
-    .from('installations')
-    .update({ status: 'CONCLUIDA', finished_at: now, approved: true, approved_at: now })
-    .eq('id', installationId)
-
+  const { error } = await supabase.rpc('finish_installation', { p_installation_id: installationId })
   if (error) return { error: error.message }
-
-  const { error: woError } = await supabase
-    .from('work_orders')
-    .update({ status_code: 'FINALIZADA', finished_at: now })
-    .eq('id', workOrderId)
-
-  if (woError) return { error: woError.message }
-
-  await supabase
-    .from('work_order_items')
-    .update({ production_status: 'INSTALADO' })
-    .eq('work_order_id', workOrderId)
-    .neq('production_status', 'RETRABALHO')
 
   revalidatePath(`/os/${workOrderId}`)
   revalidatePath('/instalacoes')

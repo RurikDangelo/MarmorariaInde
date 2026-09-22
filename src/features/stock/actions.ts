@@ -200,6 +200,7 @@ export async function registerStockLoss(_prev: ActionState, formData: FormData):
 }
 
 const materialSchema = z.object({
+  code: optionalString,
   name: z.string().trim().min(1, 'Informe o nome do material'),
   type_code: z.string().min(1, 'Selecione o tipo'),
   color: optionalString,
@@ -227,12 +228,21 @@ export async function saveMaterial(_prev: ActionState, formData: FormData): Prom
   const id = String(formData.get('id') ?? '')
   const supabase = await createClient()
 
-  const { error } = id
-    ? await supabase.from('materials').update(parsed.data).eq('id', id)
-    : await supabase.from('materials').insert(parsed.data)
+  const query = id
+    ? supabase.from('materials').update(parsed.data).eq('id', id)
+    : supabase.from('materials').insert(parsed.data)
+  const { data, error } = await query
+    .select('id, code, name, price_per_m2, thickness_mm, type_code')
+    .single<{ id: string; code: string | null; name: string; price_per_m2: number | null; thickness_mm: number | null; type_code: string }>()
 
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '23505') return { error: `Já existe um material com o código ${parsed.data.code}.` }
+    return { error: error.message }
+  }
 
   revalidatePath('/estoque')
-  return { success: id ? 'Material atualizado.' : 'Material cadastrado.' }
+  return {
+    success: id ? 'Material atualizado.' : `Material cadastrado (código ${data.code}).`,
+    data,
+  }
 }
