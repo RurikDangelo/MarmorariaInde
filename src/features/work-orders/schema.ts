@@ -8,102 +8,6 @@ const optionalString = z
   .nullable()
   .optional()
 
-const optionalUuid = z
-  .string()
-  .trim()
-  .transform((value) => (value === '' || value === 'NENHUM' ? null : value))
-  .nullable()
-  .optional()
-  .refine((value) => value === null || value === undefined || z.string().uuid().safeParse(value).success, {
-    message: 'Identificador inválido',
-  })
-
-const optionalDate = z
-  .string()
-  .trim()
-  .transform((value) => (value === '' ? null : value))
-  .nullable()
-  .optional()
-
-const numberFromForm = (fallback = 0) =>
-  z
-    .union([z.string(), z.number()])
-    .transform((value) => {
-      if (typeof value === 'number') return value
-      const normalized = value.trim().replace(/\./g, '').replace(',', '.')
-      const parsed = Number(normalized)
-      return Number.isFinite(parsed) ? parsed : fallback
-    })
-    .default(fallback)
-
-const intFromForm = (fallback = 0) =>
-  z
-    .union([z.string(), z.number()])
-    .transform((value) => {
-      const parsed = typeof value === 'number' ? value : Number(value.trim() || fallback)
-      return Number.isFinite(parsed) ? Math.round(parsed) : fallback
-    })
-    .default(fallback)
-
-const boolFromForm = z
-  .union([z.string(), z.boolean()])
-  .transform((value) => value === true || value === 'on' || value === 'true' || value === '1')
-  .default(false)
-
-export const workOrderSchema = z.object({
-  customer_id: z.string().uuid('Selecione o cliente'),
-  title: optionalString,
-  priority: z.enum(['BAIXA', 'NORMAL', 'ALTA', 'URGENTE']).default('NORMAL'),
-  status_code: z.string().min(1).optional(),
-  assigned_to: optionalUuid,
-  team_id: optionalUuid,
-  deadline: optionalDate,
-  scheduled_measurement_at: optionalDate,
-  scheduled_install_at: optionalDate,
-  zip_code: optionalString,
-  address: optionalString,
-  address_number: optionalString,
-  complement: optionalString,
-  district: optionalString,
-  city: optionalString,
-  state: optionalString,
-  discount: numberFromForm(0),
-  notes: optionalString,
-  internal_notes: optionalString,
-})
-
-export type WorkOrderInput = z.infer<typeof workOrderSchema>
-
-export const workOrderItemSchema = z.object({
-  work_order_id: z.string().uuid(),
-  description: z.string().trim().min(1, 'Descreva a peça'),
-  environment: optionalString,
-  material_id: optionalUuid,
-  color: optionalString,
-  thickness_mm: intFromForm(0).transform((value) => (value > 0 ? value : null)),
-  length_mm: intFromForm(0),
-  width_mm: intFromForm(0),
-  quantity: numberFromForm(1).refine((value) => value > 0, 'Quantidade deve ser maior que zero'),
-  pricing_mode: z.enum(['M2', 'ML', 'UN']).default('M2'),
-  unit_price: numberFromForm(0),
-  finish: optionalString,
-  edge: optionalString,
-  skirt_mm: intFromForm(0).transform((value) => (value > 0 ? value : null)),
-  backsplash_mm: intFromForm(0).transform((value) => (value > 0 ? value : null)),
-  cutouts: intFromForm(0),
-  has_sink: boolFromForm,
-  sink_type: optionalString,
-  sink_quantity: intFromForm(0),
-  has_cooktop: boolFromForm,
-  cooktop_type: optionalString,
-  faucet_holes: intFromForm(0),
-  outlet_holes: intFromForm(0),
-  extra_holes: intFromForm(0),
-  notes: optionalString,
-})
-
-export type WorkOrderItemInput = z.infer<typeof workOrderItemSchema>
-
 export const statusChangeSchema = z.object({
   work_order_id: z.string().uuid(),
   status_code: z.string().min(1, 'Informe o novo status'),
@@ -135,6 +39,8 @@ export interface ActionState {
   error?: string
   success?: string
   fieldErrors?: Record<string, string>
+  /** Registro gravado, quando a tela precisa usar na hora (ex.: cliente criado na OS). */
+  data?: unknown
 }
 
 export function zodToFieldErrors(error: z.ZodError): Record<string, string> {

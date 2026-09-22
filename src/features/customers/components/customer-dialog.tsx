@@ -18,24 +18,38 @@ export function CustomerDialog({
   customer,
   trigger,
   openByDefault,
+  open: controlledOpen,
+  onOpenChange,
+  defaultName,
+  onSaved,
 }: {
   customer?: Customer
   trigger?: React.ReactNode
   openByDefault?: boolean
+  /** Controlado por fora (cadastro rapido dentro da OS/orcamento). */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Nome ja digitado na busca. */
+  defaultName?: string
+  onSaved?: (customer: Customer) => void
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [open, setOpen] = React.useState(!!openByDefault)
+  const [internalOpen, setInternalOpen] = React.useState(!!openByDefault)
+  const controlled = controlledOpen !== undefined
+  const open = controlled ? controlledOpen : internalOpen
+  const setOpen = (value: boolean) => (controlled ? onOpenChange?.(value) : setInternalOpen(value))
   const [state, formAction, pending] = useActionForm(saveCustomer, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       setOpen(false)
-      router.refresh()
+      if (onSaved && result.data) onSaved(result.data as Customer)
+      else router.refresh()
     },
   })
 
   function handleOpenChange(value: boolean) {
     setOpen(value)
-    if (!value && searchParams.get('novo')) {
+    if (!value && !controlled && searchParams.get('novo')) {
       const params = new URLSearchParams(searchParams.toString())
       params.delete('novo')
       router.replace(`/clientes?${params.toString()}`, { scroll: false })
@@ -46,14 +60,16 @@ export function CustomerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button>
-            <Plus />
-            Novo cliente
-          </Button>
-        )}
-      </DialogTrigger>
+      {!controlled && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button>
+              <Plus />
+              Novo cliente
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{customer ? 'Editar cliente' : 'Novo cliente'}</DialogTitle>
@@ -64,7 +80,7 @@ export function CustomerDialog({
 
           <FormSection columns={2}>
             <Field label="Nome" required span="full" error={error('name')}>
-              <Input name="name" defaultValue={customer?.name ?? ''} required autoFocus />
+              <Input name="name" defaultValue={customer?.name ?? defaultName ?? ''} required autoFocus />
             </Field>
 
             <Field label="Tipo">

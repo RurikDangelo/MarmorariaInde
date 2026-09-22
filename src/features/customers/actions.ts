@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { assertPermission } from '@/lib/auth/session'
 import { formToObject, zodToFieldErrors, type ActionState } from '@/features/work-orders/schema'
+import type { Customer } from '@/types/database'
 
 const optionalString = z
   .string()
@@ -48,15 +49,16 @@ export async function saveCustomer(_prev: ActionState, formData: FormData): Prom
   const id = String(formData.get('id') ?? '')
   const supabase = await createClient()
 
-  const { error } = id
-    ? await supabase.from('customers').update(parsed.data).eq('id', id)
-    : await supabase.from('customers').insert(parsed.data)
+  const query = id
+    ? supabase.from('customers').update(parsed.data).eq('id', id)
+    : supabase.from('customers').insert(parsed.data)
+  const { data, error } = await query.select('*').single<Customer>()
 
   if (error) return { error: error.message }
 
   revalidatePath('/clientes')
   if (id) revalidatePath(`/clientes/${id}`)
-  return { success: id ? 'Cliente atualizado.' : 'Cliente cadastrado.' }
+  return { success: id ? 'Cliente atualizado.' : 'Cliente cadastrado.', data }
 }
 
 export async function toggleCustomerActive(id: string, active: boolean): Promise<ActionState> {

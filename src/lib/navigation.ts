@@ -11,6 +11,7 @@ import {
   Ruler,
   Settings,
   ShieldCheck,
+  Tags,
   Users,
   UsersRound,
 } from 'lucide-react'
@@ -46,6 +47,7 @@ export const NAVIGATION: NavGroup[] = [
     label: 'Recursos',
     items: [
       { href: '/estoque', label: 'Estoque', icon: Layers, permission: 'stock.read', keywords: ['chapa', 'material', 'retalho'] },
+      { href: '/cadastros', label: 'Cadastros', icon: Tags, permission: 'stock.read', keywords: ['produto', 'servico', 'acabamento', 'revenda', 'insumo', 'lista'] },
       { href: '/clientes', label: 'Clientes', icon: Users, permission: 'customers.read', keywords: ['cliente', 'contato'] },
       { href: '/equipe', label: 'Equipe', icon: UsersRound, permission: 'team.read', keywords: ['time', 'colaborador'] },
     ],

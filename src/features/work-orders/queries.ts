@@ -8,7 +8,6 @@ import type {
   WorkOrder,
   WorkOrderAttachment,
   WorkOrderHistory,
-  WorkOrderItem,
   WorkOrderPhoto,
   WorkOrderStatus,
 } from '@/types/database'
@@ -112,7 +111,8 @@ export async function getKanbanData(filters: { busca?: string; prioridade?: stri
   }))
 }
 
-export const getWorkOrder = cache(async (id: string): Promise<WorkOrder | null> => {
+/** Sem cache: usado logo depois de migrar uma OS antiga para a montagem nova. */
+export async function loadWorkOrder(id: string): Promise<WorkOrder | null> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('work_orders')
@@ -122,25 +122,16 @@ export const getWorkOrder = cache(async (id: string): Promise<WorkOrder | null> 
       customer:customers!work_orders_customer_id_fkey ( * ),
       status:work_order_statuses!work_orders_status_code_fkey ( * ),
       assignee:profiles!work_orders_assigned_to_fkey ( id, full_name, avatar_url ),
+      seller:profiles!work_orders_seller_id_fkey ( id, full_name ),
       team:teams!work_orders_team_id_fkey ( id, name )
     `,
     )
     .eq('id', id)
     .maybeSingle<WorkOrder>()
   return data ?? null
-})
-
-export async function getWorkOrderItems(workOrderId: string): Promise<WorkOrderItem[]> {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from('work_order_items')
-    .select('*, material:materials!work_order_items_material_id_fkey ( id, name )')
-    .eq('work_order_id', workOrderId)
-    .order('sort_order')
-    .order('created_at')
-    .returns<WorkOrderItem[]>()
-  return data ?? []
 }
+
+export const getWorkOrder = cache(loadWorkOrder)
 
 export async function getWorkOrderHistory(workOrderId: string): Promise<WorkOrderHistory[]> {
   const supabase = await createClient()

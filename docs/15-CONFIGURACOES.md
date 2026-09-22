@@ -14,7 +14,7 @@ Nome, razão social, CNPJ, telefone, WhatsApp, e-mail, endereço, cidade, UF.
 | Cor primária | botões, links, destaques, foco, badges principais |
 | Cor secundária | tom da navegação lateral |
 | Cor de destaque | elementos de apoio |
-| Logo (URL) | sidebar, topo do menu mobile e tela de login |
+| Logo | OS emitida, impressão do orçamento, sidebar, menu mobile e login |
 | Favicon (URL) | ícone da aba |
 | Tema padrão | claro, escuro ou seguir o sistema |
 
@@ -28,9 +28,17 @@ vice-versa. Não há combinação ilegível possível.
 
 ### Logo e favicon
 
-1. Supabase → Storage → bucket **`empresa`** (público para leitura)
-2. Faça upload do arquivo
-3. Copie a URL pública e cole no campo correspondente
+Botão **Enviar logo**: a imagem vai para o bucket público **`empresa`** e o endereço é
+preenchido sozinho — clique em Salvar. O logo sai no topo da OS emitida e do orçamento.
+O favicon continua por URL (mesmo bucket).
+
+## Cadastros (`/cadastros`)
+
+Produtos, Acabamentos, Serviços, Revendas e Insumos (código, descrição, unidade, valor,
+custo) e as **Listas** rápidas da OS: nomes de ambiente, validades, previsões de entrega
+(dias corridos ou úteis) e formas de pagamento (dias das parcelas, ex.: `0/30/60`).
+Leitura com `stock.read`, alteração com `stock.write`. Tudo também pode ser cadastrado na
+hora, na tela da OS/orçamento.
 
 ## Etapas da OS
 
@@ -45,4 +53,5 @@ consulta, então a tela mostra a verdade, não uma documentação paralela.
 ## Parâmetros operacionais
 
 - **Validade padrão do orçamento** (dias) — preenche `valid_until` automaticamente
-- **Perda esperada de material (%)** — referência de comparação no dashboard de desperdício
+- **Perda esperada de material (%)** — % Perda padrão das peças novas na montagem e
+  referência do dashboard de desperdício (o sistema antigo usava 0%)

@@ -18,7 +18,9 @@ import { GenericStatusBadge } from '@/components/shared/status-badge'
 import { ConfirmDialog } from '@/components/shared/confirm-dialog'
 import { formatArea, formatCurrency, formatDimensions } from '@/lib/utils'
 import { consumeStockItem, registerStockLoss, releaseStockItem, reserveStockItem } from '@/features/stock/actions'
+import type { MaterialNeed } from '@/features/composition/components/materials-summary'
 import type { StockItem } from '@/types/database'
+import { MaterialNeeds } from './material-needs'
 
 const LOSS_REASONS = [
   { value: 'QUEBRA', label: 'Quebra' },
@@ -34,11 +36,14 @@ export function MaterialPanel({
   workOrderId,
   reserved,
   available,
+  needs,
   canWrite,
 }: {
   workOrderId: string
   reserved: StockItem[]
   available: StockItem[]
+  /** m² que a montagem da OS consome, por material (com perda). */
+  needs: MaterialNeed[]
   canWrite: boolean
 }) {
   const totalArea = reserved.reduce((sum, item) => sum + Number(item.area_m2 ?? 0), 0)
@@ -46,6 +51,8 @@ export function MaterialPanel({
 
   return (
     <div className="flex flex-col gap-4">
+      {needs.length > 0 && <MaterialNeeds needs={needs} reserved={reserved} />}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold">Material da OS</h2>

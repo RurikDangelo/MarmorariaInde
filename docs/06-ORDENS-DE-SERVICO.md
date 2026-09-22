@@ -1,7 +1,8 @@
 # 06 — Ordens de serviço
 
 A OS é o centro do sistema. Tudo — medição, material, produção, instalação, dinheiro —
-pendura nela.
+pendura nela. Desde a 0.2.0 ela é montada **numa tela só**, como o sistema antigo
+(detalhes da montagem em [22](22-MONTAGEM-DO-ORCAMENTO.md)).
 
 ## Telas
 
@@ -9,68 +10,91 @@ pendura nela.
 |---|---|
 | `/os` | Lista com filtros (etapa, prioridade, situação, responsável) e busca |
 | `/os/kanban` | Quadro por etapa com arrastar e soltar |
-| `/os/nova` | Criação |
-| `/os/[id]` | Detalhe com abas |
-| `/os/[id]/editar` | Edição dos dados da OS |
-| `/os/[id]/imprimir` | Folha A4 para a oficina e para o cliente |
+| `/os/nova` | **Nova OS completa**: cliente, dados da obra, ambientes, produtos, totais, fatura e RT |
+| `/os/nova?cliente=<id>` | Idem, já com o cliente (botão "Nova OS" da ficha do cliente) |
+| `/os/[id]` | A mesma tela com a OS gravada + andamento (abas abaixo) |
+| `/os/[id]/editar` | Redireciona para `/os/[id]` (a edição é na própria tela) |
+| `/os/[id]/imprimir` | **Emitir OS** com o logo, opções de exibição e via da oficina (sem valores) |
+| `/os/[id]/etiquetas` | Etiquetas das peças para a produção |
 
-## Abas do detalhe
+## A tela da OS
 
-**Resumo** — cliente, endereço de execução, responsável, agendamentos, observações e a
-lista de peças (adicionar, editar, remover).
-**Medição** · **Produção** · **Material** · **Instalação** · **Financeiro** · **Arquivos** ·
-**Timeline**.
+De cima para baixo:
 
-Cada aba só aparece se o usuário tiver a permissão de leitura do módulo.
+1. **Barra fixa**: situação da gravação, **Salvar (F2)**, **Etiquetas** e **Emitir OS**
+   (salva antes, se houver mudança).
+2. **Dados da OS**: cliente (busca + cadastro na hora), vendedor, prioridade, serviço,
+   previsão de entrega (lista) → prazo, tipo de pagamento, responsável e equipe.
+   **Dados da Obra** (endereço de execução, contato, agenda de medição/instalação) e
+   **Observações** ficam em blocos recolhíveis.
+3. **Ambientes e produtos**: ambientes à esquerda, grade de produtos à direita,
+   "Incluir produto" abre a Edição de Item.
+4. **Totais**: Total dos Produtos, Frete, Outras Despesas, Desconto, Total da OS.
+5. **Total de Materiais · Fatura · RT's**.
+6. **Andamento**: Medição · Produção · Material · Instalação · Financeiro · Arquivos · Timeline
+   (cada aba só aparece com a permissão de leitura do módulo).
+
+Na Nova OS nada existe no banco até a primeira ação; escolher o cliente é obrigatório
+antes de incluir ambiente ou produto. Depois da criação a tela continua a mesma, agora no
+endereço da OS.
 
 ## Campos da OS
 
-Número (automático `OS-2026-0001`), cliente, orçamento de origem, responsável, equipe,
-prioridade, etapa, prazo, agendamento de medição e de instalação, endereço de execução,
-valor total, recebido, pendente, desconto, observações (visíveis) e observações internas.
+Número (automático `OS-2026-0001`), cliente, orçamento de origem, vendedor, responsável,
+equipe, prioridade, etapa, prazo, agendamento de medição e de instalação, endereço de
+execução, dados da obra, tipo/espécie/forma de pagamento, total dos produtos, frete,
+outras despesas, desconto, total, recebido, pendente, observações (saem na OS) e internas.
 
-`total_value` vem da soma das peças menos o desconto — calculado por trigger.
-`received_value` vem dos títulos de receita pagos e vinculados à OS.
-`pending_value` é coluna gerada.
-
-## Peças (itens da OS)
-
-Cada peça registra o que a oficina precisa saber para cortar:
-
-- descrição, ambiente, material, cor, espessura
-- comprimento × largura × quantidade → **m² calculado pelo banco**
-- cobrança por m², metro linear ou unidade + preço unitário → **valor calculado pelo banco**
-- acabamento, borda, saia, frontão
-- recortes, cuba (tipo e quantidade), cooktop, furos de torneira, de tomada e extras
-- observações e situação de produção
-
-> As medidas são digitadas **em metros** (`2,45`) e gravadas em milímetros.
+- `products_total` vem da montagem (soma dos produtos) — mantido pelo banco.
+- `total_value` = `products_total + freight + surcharge − discount` — trigger; mudar frete ou
+  desconto recalcula na hora.
+- `received_value` vem dos títulos de receita pagos vinculados à OS; `pending_value` é gerada.
 
 ## Mudança de etapa
 
 Três caminhos, todos passam pela mesma regra:
 
-1. Botão **Avançar para <próxima etapa>** no topo do detalhe
-2. Diálogo **Mudar etapa** (com observação opcional)
+1. Botão **Mudar etapa** no topo da OS
+2. Diálogo com observação opcional
 3. Arrastar o card no Kanban
 
-Exige a permissão `work_orders.status`. Toda mudança grava um evento na timeline com o
-nome de quem mexeu. Ao entrar em etapa terminal (`FINALIZADA`), `finished_at` é preenchido.
+Exige `work_orders.status`. Toda mudança grava um evento na timeline com o nome de quem
+mexeu. Ao entrar em etapa terminal (`FINALIZADA`), `finished_at` é preenchido. OS
+finalizada ou cancelada não aceita mudança na montagem (reabra mudando a etapa).
+
+## Produção por peça
+
+O apontamento de produção escolhe a **peça** da montagem ("Cozinha · Pia e Balcão · Peça 3
+— Saia (0,94 × 0,06)"). A situação da peça (`PENDENTE`, `EM_PRODUCAO`, `PRONTO`,
+`INSTALADO`, `RETRABALHO`) é gravada por `set_piece_status`, que exige `production.write`
+(não precisa poder editar a OS). Concluir a instalação (`finish_installation`) finaliza a OS
+e marca as peças como instaladas.
+
+## Medição → produtos
+
+"Gerar peças da OS" na medição aprovada (`import_measurement`) cria um produto com a peça
+medida para cada medida, no ambiente de mesmo nome (cria o ambiente se não existir). O
+material é escolhido depois na montagem.
+
+## Material
+
+A aba Material mostra a **necessidade da montagem** (m² com perda por material) ao lado
+das chapas reservadas e do que falta separar.
 
 ## Timeline
 
-Alimentada automaticamente por triggers: criação, status, prioridade, responsável, prazo,
-valor, medição, produção, material (reserva/consumo/perda), instalação, pagamento e anexos.
-Observações manuais podem ser adicionadas na aba Timeline.
-
-A timeline é **imutável**: não há policy de `update`/`delete` em `work_order_history`.
+Alimentada automaticamente: criação, status, prioridade, responsável, prazo, valor,
+produtos e ambientes (`ITEM`), medição, produção, material, instalação, pagamento, RT e
+anexos. Observações manuais na aba Timeline. É **imutável**.
 
 ## Cancelamento
 
 Exige motivo. A OS sai do Kanban, mantém histórico e lançamentos, e recebe
 `cancelled_at` + `cancel_reason`.
 
-## Impressão
+## Emissão
 
-`/os/[id]/imprimir` gera uma folha limpa com cabeçalho da empresa, cliente, endereço,
-tabela de peças (com recortes e furos), resumo financeiro e linhas de assinatura.
+`/os/[id]/imprimir`: logo e dados da marmoraria, cliente, dados da obra, cada ambiente com
+produtos, materiais, peças (com medidas), acabamentos, serviços e revendas, total de
+material, totais, parcelas lançadas, vendedor, agenda, observações e assinaturas.
+"Valores" desligado gera a via da oficina. Imprimir ou salvar em PDF pelo navegador.

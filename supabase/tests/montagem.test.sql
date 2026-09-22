@@ -237,6 +237,16 @@ do $$ begin
   perform public._t_eq('remover ambiente: produtos', (select count(*) from public.line_items where quote_id = 'e0000000-0000-4000-8000-000000000002'), 0);
 end $$;
 
+-- ambiente novo digitado na edicao do produto nasce na mesma gravacao
+select public.save_line_item('{"environment_id":"f0000000-0000-4000-8000-000000000004","environment_name":"Área gourmet",
+  "quote_id":"e0000000-0000-4000-8000-000000000002","description":"Bancada gourmet",
+  "components":[{"id":"13000000-0000-4000-8000-000000000041","kind":"SERVICO","description":"Instalação","unit":"UN","quantity":1,"unit_price":80}]}'::jsonb);
+do $$ begin
+  perform public._t_eq('ambiente criado junto', (select number from public.environments where id = 'f0000000-0000-4000-8000-000000000004'), 1);
+  perform public._t_eq('produto no ambiente novo', (select total from public.quotes where id = 'e0000000-0000-4000-8000-000000000002'), 80);
+end $$;
+select public.delete_environment('f0000000-0000-4000-8000-000000000004');
+
 -- id de linha de outro produto nunca e aceito
 select public.save_environment('{"id":"f0000000-0000-4000-8000-000000000003","quote_id":"e0000000-0000-4000-8000-000000000002","name":"Lavabo"}');
 select public._t_error('material de outro produto',

@@ -66,6 +66,12 @@ docs/                    # documentação obrigatória
   no frontend para persistir.
 - **Dinheiro** em `numeric(14,2)`. Nunca `float`.
 - Status de OS é FK para `work_order_statuses` (colunas do Kanban são dados, não código).
+- **Montagem** (ambientes → produtos → materiais/peças/composição) é do orçamento **ou**
+  da OS (`quote_id` XOR `work_order_id`) e só é gravada por funções `SECURITY DEFINER`
+  (`save_line_item`, `save_environment`...). As tabelas são só leitura pela API. Ver
+  `docs/22-MONTAGEM-DO-ORCAMENTO.md`. A OS é uma **tela única** (`/os/nova`, `/os/[id]`).
+- Migrations precisam ser idempotentes (`db:push -- --all`) e testadas com
+  `npm run db:test` (Postgres local) antes de ir para produção.
 
 ## 5. Segurança (inegociável)
 
@@ -94,6 +100,8 @@ npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 npm run db:push    # aplica supabase/migrations/*.sql
 npm run db:seed    # popula dados DEMO (somente desenvolvimento)
+npm run db:test    # testes do banco (TEST_DATABASE_URL = Postgres local descartável)
+npm run db:bundle -- 0020  # .sql único das migrations para o SQL Editor do Supabase
 ```
 
 ## 8. Workflow obrigatório

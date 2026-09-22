@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { assertPermission } from '@/lib/auth/session'
+import { assertPermission, getSessionUser } from '@/lib/auth/session'
 import type { ActionState } from '@/features/work-orders/schema'
 
 /** Registra no banco um arquivo já enviado ao Storage pelo browser. */
@@ -92,19 +92,27 @@ export async function deleteWorkOrderFile(
   const { error } = await supabase.from(table).delete().eq('id', id)
   if (error) return { error: error.message }
 
-  await supabase.storage.from('os-arquivos').remove([storagePath])
+  // Anexo que veio do orçamento aprovado continua sendo do orçamento: só sai da OS.
+  if (!storagePath.startsWith('orcamentos/')) {
+    await supabase.storage.from('os-arquivos').remove([storagePath])
+  }
 
   revalidatePath(`/os/${workOrderId}`)
   return { success: 'Arquivo removido.' }
 }
 
-/** URL assinada temporária para exibir/baixar um arquivo privado. */
+/**
+ * URL assinada temporária para exibir/baixar um arquivo privado.
+ * Arquivos do orçamento (pasta orcamentos/) também abrem para quem só vê orçamentos;
+ * o Storage confere a permissão de novo.
+ */
 export async function getSignedUrl(storagePath: string, bucket = 'os-arquivos'): Promise<string | null> {
-  try {
-    await assertPermission('work_orders.read')
-  } catch {
-    return null
-  }
+  const user = await getSessionUser()
+  if (!user) return null
+  const allowed =
+    user.permissions.has('work_orders.read') ||
+    (storagePath.startsWith('orcamentos/') && user.permissions.has('quotes.read'))
+  if (!allowed) return null
 
   const supabase = await createClient()
   const { data } = await supabase.storage.from(bucket).createSignedUrl(storagePath, 60 * 30)

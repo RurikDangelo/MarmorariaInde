@@ -179,34 +179,58 @@ export function StockItemDialog({
   )
 }
 
+export interface SavedMaterial {
+  id: string
+  code: string | null
+  name: string
+  price_per_m2: number | null
+  thickness_mm: number | null
+  type_code: string
+}
+
 export function MaterialDialog({
   types,
   material,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
+  defaultName,
+  onSaved,
 }: {
-  types: MaterialType[]
+  types: Pick<MaterialType, 'code' | 'label'>[]
   material?: Material
   trigger?: React.ReactNode
+  /** Controlado por fora (cadastro rapido dentro da montagem). */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  defaultName?: string
+  onSaved?: (material: SavedMaterial) => void
 }) {
   const router = useRouter()
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const controlled = controlledOpen !== undefined
+  const open = controlled ? controlledOpen : internalOpen
+  const setOpen = (value: boolean) => (controlled ? onOpenChange?.(value) : setInternalOpen(value))
   const [, formAction, pending] = useActionForm(saveMaterial, {
-    onSuccess: () => {
+    onSuccess: (result) => {
       setOpen(false)
-      router.refresh()
+      if (onSaved && result.data) onSaved(result.data as SavedMaterial)
+      else router.refresh()
     },
   })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline">
-            <Plus />
-            Novo material
-          </Button>
-        )}
-      </DialogTrigger>
+      {!controlled && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button variant="outline">
+              <Plus />
+              Novo material
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{material ? 'Editar material' : 'Novo material'}</DialogTitle>
@@ -219,8 +243,12 @@ export function MaterialDialog({
           {material && <input type="hidden" name="id" value={material.id} />}
 
           <FormSection columns={2}>
-            <Field label="Nome" required span="full">
-              <Input name="name" defaultValue={material?.name ?? ''} required autoFocus />
+            <Field label="Descrição" required span="full">
+              <Input name="name" defaultValue={material?.name ?? defaultName ?? ''} required autoFocus />
+            </Field>
+
+            <Field label="Código" hint="Vazio = próximo número">
+              <Input name="code" defaultValue={material?.code ?? ''} maxLength={40} />
             </Field>
 
             <Field label="Tipo" required>

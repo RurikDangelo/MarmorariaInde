@@ -6,6 +6,7 @@ import {
   Hammer,
   Layers,
   MapPin,
+  Package,
   Paperclip,
   PlusCircle,
   Ruler,
@@ -33,6 +34,7 @@ const EVENT_CONFIG: Record<string, { icon: React.ElementType; tone: string }> = 
   ANEXO: { icon: Paperclip, tone: 'bg-muted text-muted-foreground' },
   OBSERVACAO: { icon: FileText, tone: 'bg-muted text-muted-foreground' },
   CANCELAMENTO: { icon: XCircle, tone: 'bg-destructive/12 text-destructive' },
+  ITEM: { icon: Package, tone: 'bg-primary/12 text-primary' },
 }
 
 export function Timeline({ events, className }: { events: WorkOrderHistory[]; className?: string }) {

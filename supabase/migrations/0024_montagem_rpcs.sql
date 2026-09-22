@@ -180,7 +180,9 @@ $fn$;
 --                  price_overridden, notes }]
 -- }
 -- Ids de linhas novas podem vir do navegador (a peca aponta o material novo
--- antes de ele existir no banco).
+-- antes de ele existir no banco). Ambiente novo digitado na propria edicao do
+-- produto vem com environment_id novo + environment_name + quote_id ou
+-- work_order_id, e e criado na mesma transacao.
 -- -------------------------------------------------------------------------
 create or replace function public.save_line_item(p_item jsonb)
 returns jsonb
@@ -192,6 +194,7 @@ declare
   v_id          uuid := coalesce(nullif(p_item->>'id', '')::uuid, gen_random_uuid());
   v_version     integer := nullif(p_item->>'version', '')::integer;
   v_env         public.environments;
+  v_new_env     uuid;
   v_current     public.line_items;
   v_is_new      boolean;
   v_product     public.products;
@@ -208,7 +211,17 @@ begin
 
   select * into v_env from public.environments where id = nullif(p_item->>'environment_id', '')::uuid;
   if not found then
-    raise exception 'Selecione o ambiente do produto';
+    -- ambiente novo digitado na propria edicao do produto: cria junto
+    if btrim(coalesce(p_item->>'environment_name', '')) = '' then
+      raise exception 'Selecione o ambiente do produto';
+    end if;
+    v_new_env := public.save_environment(jsonb_build_object(
+      'id', nullif(p_item->>'environment_id', ''),
+      'quote_id', nullif(p_item->>'quote_id', ''),
+      'work_order_id', nullif(p_item->>'work_order_id', ''),
+      'name', p_item->>'environment_name'
+    ));
+    select * into v_env from public.environments where id = v_new_env;
   end if;
 
   perform public.assert_document_writable(v_env.quote_id, v_env.work_order_id);

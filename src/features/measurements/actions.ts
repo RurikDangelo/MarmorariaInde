@@ -166,8 +166,9 @@ export async function approveMeasurement(
 }
 
 /**
- * Copia as medidas conferidas para as peças da OS.
- * É o momento em que a medição vira produção.
+ * Copia as medidas conferidas para a montagem da OS: cada medida vira um
+ * produto com a peça medida, no ambiente de mesmo nome. É o momento em que a
+ * medição vira produção; o material é escolhido depois na montagem.
  */
 export async function importMeasurementItems(
   measurementId: string,
@@ -180,49 +181,9 @@ export async function importMeasurementItems(
   }
 
   const supabase = await createClient()
-  const { data: items, error: readError } = await supabase
-    .from('work_order_measurement_items')
-    .select('*')
-    .eq('measurement_id', measurementId)
-    .order('sort_order')
-    .returns<
-      {
-        environment: string | null
-        description: string
-        length_mm: number
-        width_mm: number
-        thickness_mm: number | null
-        quantity: number
-        notes: string | null
-      }[]
-    >()
-
-  if (readError) return { error: readError.message }
-  if (!items?.length) return { error: 'Nenhuma medida registrada para importar.' }
-
-  const { error } = await supabase.from('work_order_items').insert(
-    items.map((item, index) => ({
-      work_order_id: workOrderId,
-      sort_order: index,
-      description: item.description,
-      environment: item.environment,
-      length_mm: item.length_mm,
-      width_mm: item.width_mm,
-      thickness_mm: item.thickness_mm,
-      quantity: item.quantity,
-      notes: item.notes,
-    })),
-  )
-
+  const { data: count, error } = await supabase.rpc('import_measurement', { p_measurement_id: measurementId })
   if (error) return { error: error.message }
 
-  await supabase.from('work_order_history').insert({
-    work_order_id: workOrderId,
-    event_type: 'MEDICAO',
-    title: 'Medidas importadas para as peças',
-    description: `${items.length} medida(s) viraram peças da OS.`,
-  })
-
   revalidatePath(`/os/${workOrderId}`)
-  return { success: `${items.length} peça(s) criada(s) a partir da medição.` }
+  return { success: `${count} produto(s) criado(s) a partir da medição. Escolha o material na montagem.` }
 }

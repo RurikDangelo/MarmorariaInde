@@ -63,6 +63,15 @@ export type ActionPlanStatus = 'ABERTO' | 'EM_ANDAMENTO' | 'CONCLUIDO' | 'CANCEL
 export type AlertSeverity = 'INFO' | 'ATENCAO' | 'CRITICO'
 export type PricingMode = 'M2' | 'ML' | 'UN'
 
+/** Unidades da montagem. ML aparece como "MT" (metro linear), como no sistema antigo. */
+export type UnitCode = 'M2' | 'ML' | 'UN' | 'PC' | 'KG' | 'L'
+export type ProductKind = 'PRODUTO' | 'ACABAMENTO' | 'SERVICO' | 'REVENDA' | 'INSUMO'
+export type ComponentKind = Exclude<ProductKind, 'PRODUTO'>
+export type PaymentMethod = 'DINHEIRO' | 'PIX' | 'DEBITO' | 'CREDITO' | 'BOLETO' | 'TRANSFERENCIA' | 'CHEQUE' | 'OUTRO'
+export type PaymentType = 'A_VISTA' | 'A_PRAZO'
+export type LookupList = 'AMBIENTE' | 'VALIDADE' | 'PREVISAO_ENTREGA' | 'FORMA_PAGAMENTO'
+export type PieceStatus = 'PENDENTE' | 'EM_PRODUCAO' | 'PRONTO' | 'INSTALADO' | 'RETRABALHO'
+
 export interface Profile {
   id: string
   full_name: string
@@ -130,6 +139,7 @@ export interface MaterialType {
 
 export interface Material {
   id: string
+  code: string | null
   name: string
   type_code: string
   color: string | null
@@ -219,17 +229,32 @@ export interface Quote {
   status: QuoteStatus
   issue_date: string
   valid_until: string | null
+  validity_days: number | null
+  delivery_term: string | null
+  delivery_days: number | null
+  delivery_date: string | null
+  seller_id: string | null
+  site_details: string | null
+  payment_type: PaymentType
+  payment_method: PaymentMethod | null
+  payment_terms: string | null
+  /** Total dos Produtos. */
   subtotal: number
   discount: number
+  /** Outras Despesas. */
   surcharge: number
+  freight: number
   total: number
+  items_model: 1 | 2
   notes: string | null
   internal_notes: string | null
   approved_at: string | null
   rejected_reason: string | null
   is_demo: boolean
   created_at: string
+  updated_at: string
   customer?: Customer | null
+  seller?: Pick<Profile, 'id' | 'full_name'> | null
   items?: QuoteItem[]
 }
 
@@ -275,10 +300,21 @@ export interface WorkOrder {
   district: string | null
   city: string | null
   state: string | null
+  seller_id: string | null
+  site_details: string | null
+  payment_type: PaymentType
+  payment_method: PaymentMethod | null
+  payment_terms: string | null
+  /** Total dos Produtos (soma da montagem). */
+  products_total: number
+  freight: number
+  /** Outras Despesas. */
+  surcharge: number
   total_value: number
   received_value: number
   pending_value: number
   discount: number
+  items_model: 1 | 2
   notes: string | null
   internal_notes: string | null
   started_at: string | null
@@ -291,6 +327,7 @@ export interface WorkOrder {
   customer?: Customer | null
   status?: WorkOrderStatus | null
   assignee?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null
+  seller?: Pick<Profile, 'id' | 'full_name'> | null
   team?: Pick<Team, 'id' | 'name'> | null
   items?: WorkOrderItem[]
 }
@@ -327,6 +364,164 @@ export interface WorkOrderItem {
   notes: string | null
   production_status: 'PENDENTE' | 'EM_PRODUCAO' | 'PRONTO' | 'INSTALADO' | 'RETRABALHO'
   material?: Pick<Material, 'id' | 'name'> | null
+}
+
+/* ------------------------------------------------------------------ */
+/* Montagem (ambientes > produtos > materiais, pecas e composicao)     */
+/* ------------------------------------------------------------------ */
+
+/** Cadastro "Produtos e servicos". */
+export interface Product {
+  id: string
+  code: string | null
+  name: string
+  kind: ProductKind
+  unit: UnitCode
+  price: number
+  cost: number | null
+  description: string | null
+  active: boolean
+  is_demo: boolean
+}
+
+export interface LookupOption {
+  id: string
+  list: LookupList
+  label: string
+  days: number | null
+  business_days: boolean
+  installments: string | null
+  sort_order: number
+  active: boolean
+}
+
+export interface Environment {
+  id: string
+  quote_id: string | null
+  work_order_id: string | null
+  number: number
+  name: string
+  description: string | null
+  sort_order: number
+}
+
+export interface LineItemMaterial {
+  id: string
+  line_item_id: string
+  material_id: string | null
+  code: string | null
+  description: string
+  thickness_mm: number | null
+  price_per_m2: number
+  price_overridden: boolean
+  area_m2: number
+  area_with_waste_m2: number
+  total_area_m2: number
+  total_value: number
+  sort_order: number
+}
+
+export interface LineItemPiece {
+  id: string
+  line_item_id: string
+  line_item_material_id: string | null
+  number: string | null
+  name: string | null
+  quantity: number
+  length_mm: number
+  width_mm: number
+  waste_pct: number
+  area_m2: number
+  area_with_waste_m2: number
+  label_count: number
+  specs: string | null
+  production_status: PieceStatus
+  sort_order: number
+}
+
+export interface LineItemComponent {
+  id: string
+  line_item_id: string
+  kind: ComponentKind
+  product_id: string | null
+  code: string | null
+  description: string
+  unit: UnitCode
+  quantity: number
+  unit_price: number
+  price_overridden: boolean
+  total_quantity: number
+  total_value: number
+  notes: string | null
+  sort_order: number
+}
+
+export interface LineItem {
+  id: string
+  quote_id: string | null
+  work_order_id: string | null
+  environment_id: string
+  product_id: string | null
+  code: string | null
+  description: string
+  complement: string | null
+  quantity: number
+  unit: UnitCode
+  length_mm: number | null
+  width_mm: number | null
+  edge_mm: number | null
+  backsplash_mm: number | null
+  foot_mm: number | null
+  drawing_path: string | null
+  notes: string | null
+  sort_order: number
+  version: number
+  materials_area_m2: number
+  materials_total: number
+  finishes_total: number
+  services_total: number
+  resale_total: number
+  supplies_total: number
+  total: number
+  materials?: LineItemMaterial[]
+  pieces?: LineItemPiece[]
+  components?: LineItemComponent[]
+}
+
+export interface QuoteInstallment {
+  id: string
+  quote_id: string
+  number: number
+  due_date: string
+  amount: number
+  payment_method: PaymentMethod | null
+  notes: string | null
+  financial_transaction_id: string | null
+}
+
+export interface TechnicalReserve {
+  id: string
+  quote_id: string | null
+  work_order_id: string | null
+  professional_name: string
+  professional_phone: string | null
+  professional_document: string | null
+  pix_key: string | null
+  percentage: number | null
+  amount: number
+  notes: string | null
+  financial_transaction_id: string | null
+}
+
+export interface QuoteAttachment {
+  id: string
+  quote_id: string
+  file_name: string
+  storage_path: string
+  mime_type: string | null
+  size_bytes: number | null
+  kind: string
+  created_at: string
 }
 
 export interface WorkOrderHistory {
@@ -430,6 +625,8 @@ export interface ProductionRecord {
   id: string
   work_order_id: string
   work_order_item_id: string | null
+  line_item_id: string | null
+  piece_id: string | null
   step_code: string
   responsible_id: string | null
   team_id: string | null

@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { assertPermission } from '@/lib/auth/session'
 import {
@@ -9,69 +8,12 @@ import {
   formToObject,
   noteSchema,
   statusChangeSchema,
-  workOrderItemSchema,
-  workOrderSchema,
-  zodToFieldErrors,
   type ActionState,
 } from './schema'
 
 function fail(error: unknown): ActionState {
   const message = error instanceof Error ? error.message : 'Erro inesperado. Tente novamente.'
   return { error: message }
-}
-
-/* ------------------------------------------------------------------ */
-/* Criar / editar OS                                                   */
-/* ------------------------------------------------------------------ */
-
-export async function createWorkOrder(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  try {
-    await assertPermission('work_orders.write')
-  } catch (error) {
-    return fail(error)
-  }
-
-  const parsed = workOrderSchema.safeParse(formToObject(formData))
-  if (!parsed.success) {
-    return { error: 'Revise os campos destacados.', fieldErrors: zodToFieldErrors(parsed.error) }
-  }
-
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('work_orders')
-    .insert(parsed.data)
-    .select('id')
-    .single<{ id: string }>()
-
-  if (error) return { error: error.message }
-
-  revalidatePath('/os')
-  revalidatePath('/dashboard')
-  redirect(`/os/${data.id}`)
-}
-
-export async function updateWorkOrder(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  try {
-    await assertPermission('work_orders.write')
-  } catch (error) {
-    return fail(error)
-  }
-
-  const id = String(formData.get('id') ?? '')
-  if (!id) return { error: 'OS não identificada.' }
-
-  const parsed = workOrderSchema.safeParse(formToObject(formData))
-  if (!parsed.success) {
-    return { error: 'Revise os campos destacados.', fieldErrors: zodToFieldErrors(parsed.error) }
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.from('work_orders').update(parsed.data).eq('id', id)
-  if (error) return { error: error.message }
-
-  revalidatePath(`/os/${id}`)
-  revalidatePath('/os')
-  return { success: 'Ordem de serviço atualizada.' }
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,78 +156,4 @@ export async function addWorkOrderNote(_prev: ActionState, formData: FormData): 
 
   revalidatePath(`/os/${parsed.data.work_order_id}`)
   return { success: 'Observação registrada.' }
-}
-
-/* ------------------------------------------------------------------ */
-/* Itens da OS                                                         */
-/* ------------------------------------------------------------------ */
-
-export async function saveWorkOrderItem(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  try {
-    await assertPermission('work_orders.write')
-  } catch (error) {
-    return fail(error)
-  }
-
-  const parsed = workOrderItemSchema.safeParse(formToObject(formData))
-  if (!parsed.success) {
-    return { error: 'Revise os campos da peça.', fieldErrors: zodToFieldErrors(parsed.error) }
-  }
-
-  const itemId = String(formData.get('id') ?? '')
-  const supabase = await createClient()
-
-  const { error } = itemId
-    ? await supabase.from('work_order_items').update(parsed.data).eq('id', itemId)
-    : await supabase.from('work_order_items').insert(parsed.data)
-
-  if (error) return { error: error.message }
-
-  await supabase.from('work_order_history').insert({
-    work_order_id: parsed.data.work_order_id,
-    event_type: 'OBSERVACAO',
-    title: itemId ? 'Peça atualizada' : 'Peça adicionada',
-    description: parsed.data.description,
-  })
-
-  revalidatePath(`/os/${parsed.data.work_order_id}`)
-  return { success: itemId ? 'Peça atualizada.' : 'Peça adicionada.' }
-}
-
-export async function deleteWorkOrderItem(itemId: string, workOrderId: string): Promise<ActionState> {
-  try {
-    await assertPermission('work_orders.write')
-  } catch (error) {
-    return fail(error)
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.from('work_order_items').delete().eq('id', itemId)
-  if (error) return { error: error.message }
-
-  revalidatePath(`/os/${workOrderId}`)
-  return { success: 'Peça removida.' }
-}
-
-export async function updateItemProductionStatus(
-  itemId: string,
-  workOrderId: string,
-  status: string,
-): Promise<ActionState> {
-  try {
-    await assertPermission('production.write')
-  } catch (error) {
-    return fail(error)
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('work_order_items')
-    .update({ production_status: status })
-    .eq('id', itemId)
-
-  if (error) return { error: error.message }
-
-  revalidatePath(`/os/${workOrderId}`)
-  return { success: 'Situação da peça atualizada.' }
 }

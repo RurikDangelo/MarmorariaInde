@@ -8,7 +8,9 @@ import { ClearFiltersButton, FilterBar, FilterSelect, SearchInput } from '@/comp
 import { requirePermission } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { NewQuoteDialog } from '@/features/quotes/components/quote-components'
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { Quote } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Orçamentos' }
@@ -33,10 +35,7 @@ export default async function QuotesPage({
     query = query.ilike('number', `%${term}%`)
   }
 
-  const [{ data, count }, { data: customers }] = await Promise.all([
-    query.order('created_at', { ascending: false }).limit(150).returns<Quote[]>(),
-    supabase.from('customers').select('id, name').eq('active', true).order('name').limit(500),
-  ])
+  const { data, count } = await query.order('created_at', { ascending: false }).limit(150).returns<Quote[]>()
 
   const rows = data ?? []
   const open = rows.filter((row) => row.status === 'RASCUNHO' || row.status === 'ENVIADO')
@@ -83,7 +82,16 @@ export default async function QuotesPage({
       <PageHeader
         title="Orçamentos"
         description="Proposta → aprovação → ordem de serviço, sem redigitar nada."
-        actions={canWrite ? <NewQuoteDialog customers={customers ?? []} /> : undefined}
+        actions={
+          canWrite ? (
+            <Button asChild>
+              <Link href="/orcamentos/novo">
+                <Plus />
+                Novo orçamento
+              </Link>
+            </Button>
+          ) : undefined
+        }
       />
 
       <section className="grid gap-3 sm:grid-cols-3">

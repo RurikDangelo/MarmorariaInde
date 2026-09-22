@@ -3,6 +3,58 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.0] — 2026-09-22
+
+OS e orçamento montados **numa tela só**, com a mesma lógica e os mesmos nomes do sistema
+antigo da marmoraria. Detalhes em [22](22-MONTAGEM-DO-ORCAMENTO.md).
+
+### Adicionado
+
+- **Tela única** da OS (`/os/nova`, `/os/[id]`) e do orçamento (`/orcamentos/novo`,
+  `/orcamentos/[id]`): cliente, dados da obra, ambientes, produtos, totais, fatura e RT sem
+  trocar de página; o documento é gravado na primeira ação. Salvar = F2.
+- **Montagem**: Ambiente → Produto → Materiais, Peças, Acabamentos, Serviços, Revendas,
+  Insumos e Desenho ("Edição de Item", F2 Gravar / Esc Cancelar), com **m² calculado pelas
+  peças** (Total M², % Perda, Total com Perda, Quantidade M², QTD M² Total) — conferido com a
+  impressão do sistema antigo (4,0238 m² / R$ 4.805,68).
+- **Gerar peças** a partir de Comprimento, Largura, Borda, Rodabanca e Pé.
+- **Cadastro rápido** na própria tela: cliente (busca por nome/CPF/telefone), material,
+  produto, acabamento, serviço, revenda, insumo e listas (ambiente, validade, previsão de
+  entrega, forma de pagamento).
+- **Cadastros** (`/cadastros`): produtos e serviços com código, e listas rápidas.
+- Cabeçalho do antigo: Status do Orçamento, Validade → Data Validade, Previsão de Entrega,
+  Vendedor, Tipo de Pagamento, Dados da Obra; Frete e Outras Despesas.
+- **Fatura** (Espécie, Forma de Pagamento, parcelas) → contas a receber na aprovação ou na OS.
+- **RT's** (reserva técnica) → conta a pagar.
+- **Arquivos anexos** no orçamento (a OS gerada enxerga os mesmos).
+- **Aprovar e gerar OS** copia a montagem inteira, confere o total e trava o orçamento.
+- **Emitir OS** e impressão do orçamento com o **logo**, opções "Exibir" do antigo e via da
+  oficina sem valores; **etiquetas das peças** (A4 ou térmica 100×50 mm); envio do logo em
+  Configurações.
+- Produção aponta a **peça**; aba Material mostra a **necessidade de m²** × reservado.
+- `npm run db:test` (testes do banco em Postgres local) e `npm run db:bundle` (arquivo único
+  para o SQL Editor).
+
+### Corrigido
+
+- Preço com centavos da peça da OS e do desconto era gravado sem o ponto decimal
+  (R$ 620,50 → 6205) e quantidade 1.5 virava 15.
+- Medida reaberta e salva perdia o milímetro (1,234 m → 1,230 m); "2.45" digitado com ponto
+  virava 245 m.
+- Mudar o desconto da OS não recalculava o total.
+- Quem instala não conseguia finalizar a OS, e a produção não gravava a situação da peça
+  (falhavam em silêncio por falta de `work_orders.write`).
+- Orçamento aprovado podia voltar para rascunho.
+- A impressão da OS saía com a barra lateral e o topo do sistema.
+
+### Notas de migração
+
+Migrations 0020–0026, aditivas. Em produção: `npm run db:bundle -- 0020` e colar o arquivo
+no SQL Editor (uma transação). Os orçamentos e OS existentes são convertidos para a
+montagem com o **mesmo total** (conferido; se divergir, nada é aplicado). As tabelas
+`quote_items`/`work_order_items` ficam no banco sem uso e a tela antiga, se ainda aberta em
+algum computador, é avisada para recarregar. Aplicar o SQL **antes** do deploy.
+
 ## [0.1.0] — 2026-09-18
 
 Primeira versão operacional do ERP da Marmoraria Independência.

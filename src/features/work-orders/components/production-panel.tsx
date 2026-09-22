@@ -20,20 +20,26 @@ import {
   updateProductionStatus,
 } from '@/features/production/actions'
 import type { ActionState } from '@/features/work-orders/schema'
-import type { ProductionRecord, ProductionStep, WorkOrderItem } from '@/types/database'
+import type { ProductionRecord, ProductionStep } from '@/types/database'
+
+/** Peca da montagem para apontar a producao (ex.: Cozinha · Pia e Balcao · Peca 3 - Saia). */
+export interface PieceOption {
+  id: string
+  label: string
+}
 
 export function ProductionPanel({
   workOrderId,
   records,
   steps,
-  items,
+  pieces,
   users,
   canWrite,
 }: {
   workOrderId: string
   records: ProductionRecord[]
   steps: ProductionStep[]
-  items: WorkOrderItem[]
+  pieces: PieceOption[]
   users: { id: string; full_name: string }[]
   canWrite: boolean
 }) {
@@ -51,7 +57,7 @@ export function ProductionPanel({
           </p>
         </div>
         {canWrite && (
-          <StartStepDialog workOrderId={workOrderId} steps={steps} items={items} users={users} />
+          <StartStepDialog workOrderId={workOrderId} steps={steps} pieces={pieces} users={users} />
         )}
       </div>
 
@@ -180,12 +186,12 @@ function formatDuration(minutes: number): string {
 function StartStepDialog({
   workOrderId,
   steps,
-  items,
+  pieces,
   users,
 }: {
   workOrderId: string
   steps: ProductionStep[]
-  items: WorkOrderItem[]
+  pieces: PieceOption[]
   users: { id: string; full_name: string }[]
 }) {
   const [open, setOpen] = React.useState(false)
@@ -239,15 +245,15 @@ function StartStepDialog({
             </Field>
 
             <Field label="Peça (opcional)">
-              <Select name="work_order_item_id" defaultValue="NENHUM">
+              <Select name="piece_id" defaultValue="NENHUM">
                 <SelectTrigger>
                   <SelectValue placeholder="Toda a OS" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NENHUM">Toda a OS</SelectItem>
-                  {items.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.description}
+                  {pieces.map((piece) => (
+                    <SelectItem key={piece.id} value={piece.id}>
+                      {piece.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

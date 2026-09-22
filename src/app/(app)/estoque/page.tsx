@@ -297,6 +297,7 @@ export default async function StockPage({
                   <div>
                     <p className="font-medium">{row.name}</p>
                     <p className="text-xs text-muted-foreground">
+                      {row.code ? `Cód. ${row.code} · ` : ''}
                       {row.material_type?.label ?? row.type_code}
                       {row.color ? ` · ${row.color}` : ''}
                       {row.origin ? ` · ${row.origin.toLowerCase()}` : ''}
