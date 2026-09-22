@@ -9,7 +9,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:push": "node scripts/db-push.mjs",
-    "db:seed": "node scripts/seed-demo.mjs"
+    "db:seed": "node scripts/seed-demo.mjs",
+    "db:test": "node scripts/db-test.mjs",
+    "db:bundle": "node scripts/sql-bundle.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
