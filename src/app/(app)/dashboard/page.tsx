@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { after } from 'next/server'
 import {
   AlertTriangle,
   Banknote,
@@ -19,7 +20,7 @@ import { Button } from '@/components/ui/button'
 import { requirePermission } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
 import { cn, formatArea, formatCurrency, formatDate, formatNumber } from '@/lib/utils'
-import { getDashboardData, refreshAlerts, resolvePeriod, type PeriodKey } from '@/features/dashboard/queries'
+import { getDashboardData, resolvePeriod, type PeriodKey } from '@/features/dashboard/queries'
 import { CashflowChart } from '@/features/dashboard/components/cashflow-chart'
 import { StatusBadge } from '@/components/shared/status-badge'
 import type { Alert, WorkOrder } from '@/types/database'
@@ -35,9 +36,12 @@ export default async function DashboardPage({
   const { periodo } = await searchParams
   const period = (periodo ?? 'mes') as PeriodKey
 
-  await refreshAlerts().catch(() => {})
-
   const supabase = await createClient()
+  // recalculo dos alertas depois de responder: a tela nao espera por ele
+  after(async () => {
+    await supabase.rpc('refresh_alerts')
+  })
+
   const [data, { data: recentOrders }, { data: alerts }] = await Promise.all([
     getDashboardData(period),
     supabase

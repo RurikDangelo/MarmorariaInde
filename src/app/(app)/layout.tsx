@@ -6,20 +6,19 @@ import { getCompanySettings, requireUser } from '@/lib/auth/session'
 import { signOut } from '@/app/(auth)/login/actions'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser()
-  const settings = await getCompanySettings()
-  const permissions = Array.from(user.permissions)
-
-  let alertCount = 0
-  if (user.permissions.has('alerts.read')) {
-    const supabase = await createClient()
-    const { count } = await supabase
+  const supabase = await createClient()
+  // tudo em paralelo: a contagem de alertas nao espera a sessao (a RLS ja filtra quem nao pode ver)
+  const [user, settings, { count: activeAlerts }] = await Promise.all([
+    requireUser(),
+    getCompanySettings(),
+    supabase
       .from('alerts')
       .select('id', { count: 'exact', head: true })
       .is('dismissed_at', null)
-      .in('severity', ['CRITICO', 'ATENCAO'])
-    alertCount = count ?? 0
-  }
+      .in('severity', ['CRITICO', 'ATENCAO']),
+  ])
+  const permissions = Array.from(user.permissions)
+  const alertCount = user.permissions.has('alerts.read') ? (activeAlerts ?? 0) : 0
 
   const companyName = settings?.company_name ?? 'Marmoraria Independência'
 

@@ -19,22 +19,22 @@ export interface SessionUser {
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) return null
+  // Assinatura do JWT conferida aqui mesmo (sem ida ao Auth); o banco confere de novo
+  // em cada consulta e o perfil inativo continua barrado logo abaixo.
+  const { data } = await supabase.auth.getClaims()
+  const claims = data?.claims
+  if (!claims?.sub) return null
 
   const [{ data: profile }, { data: permissions }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single<Profile>(),
+    supabase.from('profiles').select('*').eq('id', claims.sub).single<Profile>(),
     supabase.rpc('my_permissions').returns<string[]>(),
   ])
 
   if (!profile || !profile.active) return null
 
   return {
-    id: user.id,
-    email: user.email ?? null,
+    id: claims.sub,
+    email: claims.email ?? null,
     profile,
     permissions: new Set((permissions ?? []) as Permission[]),
   }

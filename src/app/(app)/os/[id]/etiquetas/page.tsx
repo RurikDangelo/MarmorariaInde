@@ -24,8 +24,8 @@ export default async function WorkOrderLabelsPage({
   searchParams: Promise<{ formato?: string }>
 }) {
   const [{ id }, { formato }] = await Promise.all([params, searchParams])
-  await requirePermission('work_orders.read')
-  let workOrder = await getWorkOrder(id)
+  const [, loadedWorkOrder] = await Promise.all([requirePermission('work_orders.read'), getWorkOrder(id)])
+  let workOrder = loadedWorkOrder
   if (!workOrder) notFound()
   if (workOrder.items_model === 1) {
     await ensureNewItemsModel({ kind: 'work_order', id }, 1)

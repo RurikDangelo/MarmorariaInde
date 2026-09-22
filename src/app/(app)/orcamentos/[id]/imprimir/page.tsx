@@ -23,7 +23,6 @@ export default async function PrintQuotePage({
   searchParams: Promise<{ ocultar?: string }>
 }) {
   const [{ id }, { ocultar }] = await Promise.all([params, searchParams])
-  await requirePermission('quotes.read')
   const supabase = await createClient()
   const load = () =>
     supabase
@@ -32,7 +31,8 @@ export default async function PrintQuotePage({
       .eq('id', id)
       .maybeSingle<Quote>()
 
-  let { data: quote } = await load()
+  const [, loaded] = await Promise.all([requirePermission('quotes.read'), load()])
+  let quote = loaded.data
   if (!quote) notFound()
   if (quote.items_model === 1) {
     await ensureNewItemsModel({ kind: 'quote', id }, 1)

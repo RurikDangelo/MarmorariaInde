@@ -22,8 +22,8 @@ export default async function PrintWorkOrderPage({
   searchParams: Promise<{ ocultar?: string }>
 }) {
   const [{ id }, { ocultar }] = await Promise.all([params, searchParams])
-  const user = await requirePermission('work_orders.read')
-  let workOrder = await getWorkOrder(id)
+  const [user, loadedWorkOrder] = await Promise.all([requirePermission('work_orders.read'), getWorkOrder(id)])
+  let workOrder = loadedWorkOrder
   if (!workOrder) notFound()
   if (workOrder.items_model === 1) {
     await ensureNewItemsModel({ kind: 'work_order', id }, 1)

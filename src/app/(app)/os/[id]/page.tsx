@@ -38,8 +38,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 /** A OS e a propria tela de montagem; o andamento (medicao, producao...) fica logo abaixo. */
 export default async function WorkOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const user = await requirePermission('work_orders.read')
-  let workOrder = await getWorkOrder(id)
+  // sessao e OS juntas: a RLS ja protege a consulta
+  const [user, loadedWorkOrder] = await Promise.all([requirePermission('work_orders.read'), getWorkOrder(id)])
+  let workOrder = loadedWorkOrder
   if (!workOrder) notFound()
 
   // OS criada pela tela antiga: vira montagem nova ao abrir (mesmo total, idempotente)
@@ -51,8 +52,12 @@ export default async function WorkOrderDetailPage({ params }: { params: Promise<
   const supabase = await createClient()
   const can = (permission: Parameters<typeof user.permissions.has>[0]) => user.permissions.has(permission)
 
-  const [composition, catalog, history, measurements, production, installations, reservedStock, files, statuses, users, teams, settings] =
-    await Promise.all([
+  // os dois lotes saem juntos (antes o segundo esperava o primeiro terminar)
+  const [
+    [composition, catalog, history, measurements, production, installations, reservedStock, files, statuses, users, teams, settings],
+    [{ data: steps }, { data: availableStock }, { data: transactions }, { data: reserves }],
+  ] = await Promise.all([
+    Promise.all([
       getComposition({ kind: 'work_order', id }),
       getCatalog(),
       getWorkOrderHistory(id),
@@ -65,28 +70,28 @@ export default async function WorkOrderDetailPage({ params }: { params: Promise<
       getAssignableUsers(),
       getTeamsList(),
       getCompanySettings(),
-    ])
-
-  const [{ data: steps }, { data: availableStock }, { data: transactions }, { data: reserves }] = await Promise.all([
-    supabase.from('production_steps').select('*').eq('active', true).order('sort_order').returns<ProductionStep[]>(),
-    can('stock.read')
-      ? supabase
-          .from('stock_items')
-          .select('*, material:materials!stock_items_material_id_fkey ( id, name, color )')
-          .eq('status', 'DISPONIVEL')
-          .order('is_remnant', { ascending: false })
-          .limit(100)
-          .returns<StockItem[]>()
-      : Promise.resolve({ data: [] as StockItem[] }),
-    can('financial.read')
-      ? supabase
-          .from('financial_transactions')
-          .select('*, category:financial_categories!financial_transactions_category_id_fkey ( id, name, kind, color, active )')
-          .eq('work_order_id', id)
-          .order('due_date')
-          .returns<FinancialTransaction[]>()
-      : Promise.resolve({ data: [] as FinancialTransaction[] }),
-    supabase.from('technical_reserves').select('*').eq('work_order_id', id).order('created_at').returns<TechnicalReserve[]>(),
+    ]),
+    Promise.all([
+      supabase.from('production_steps').select('*').eq('active', true).order('sort_order').returns<ProductionStep[]>(),
+      can('stock.read')
+        ? supabase
+            .from('stock_items')
+            .select('*, material:materials!stock_items_material_id_fkey ( id, name, color )')
+            .eq('status', 'DISPONIVEL')
+            .order('is_remnant', { ascending: false })
+            .limit(100)
+            .returns<StockItem[]>()
+        : Promise.resolve({ data: [] as StockItem[] }),
+      can('financial.read')
+        ? supabase
+            .from('financial_transactions')
+            .select('*, category:financial_categories!financial_transactions_category_id_fkey ( id, name, kind, color, active )')
+            .eq('work_order_id', id)
+            .order('due_date')
+            .returns<FinancialTransaction[]>()
+        : Promise.resolve({ data: [] as FinancialTransaction[] }),
+      supabase.from('technical_reserves').select('*').eq('work_order_id', id).order('created_at').returns<TechnicalReserve[]>(),
+    ]),
   ])
 
   const days = daysUntil(workOrder.deadline)
