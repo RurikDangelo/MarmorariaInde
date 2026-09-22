@@ -248,9 +248,3 @@ function formatMonth(value: string): string {
   const names = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
   return `${names[Number(month) - 1]}/${year.slice(2)}`
 }
-
-/** Recalcula os alertas automáticos. Chamado ao abrir o dashboard/central. */
-export async function refreshAlerts(): Promise<void> {
-  const supabase = await createClient()
-  await supabase.rpc('refresh_alerts')
-}

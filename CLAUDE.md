@@ -31,6 +31,10 @@ histórico (`work_order_history`) e, quando sensível, `audit_logs`.
 ## 3. Arquitetura
 
 - **RSC-first**: páginas são Server Components e leem dados via `createServerClient`.
+- **Desempenho** (ver `docs/03-ARQUITETURA.md`): sessão por `getSessionUser()`/`getClaims()`,
+  nunca `auth.getUser()` em página ou layout; consultas independentes num único `Promise.all`
+  (o documento principal junto com `requirePermission`); o que não muda a tela vai para
+  `after()`. Funções da Vercel em `gru1`, a mesma região do Supabase (`vercel.json`).
 - **Mutations**: Server Actions em `src/features/<modulo>/actions.ts`. Toda action:
   1. valida entrada com Zod;
   2. checa permissão (`requirePermission`);

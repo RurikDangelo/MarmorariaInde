@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PageContainer, PageHeader } from '@/components/shared/page-header'
@@ -16,28 +17,35 @@ const QUOTE_SELECT = `*,
   customer:customers!quotes_customer_id_fkey ( * ),
   seller:profiles!quotes_seller_id_fkey ( id, full_name )`
 
+async function loadQuote(id: string): Promise<Quote | null> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('quotes').select(QUOTE_SELECT).eq('id', id).maybeSingle<Quote>()
+  return data
+}
+
+/** Uma consulta por request, dividida entre o titulo da aba e a pagina. */
+const getQuote = cache(loadQuote)
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
-  const supabase = await createClient()
-  const { data } = await supabase.from('quotes').select('number').eq('id', id).maybeSingle<{ number: string }>()
-  return { title: data?.number ?? 'Orçamento' }
+  const quote = await getQuote(id)
+  return { title: quote?.number ?? 'Orçamento' }
 }
 
 export default async function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const user = await requirePermission('quotes.read')
-  const supabase = await createClient()
-
-  const load = () => supabase.from('quotes').select(QUOTE_SELECT).eq('id', id).maybeSingle<Quote>()
-  let { data: quote } = await load()
+  // sessao e orcamento juntos: a RLS ja protege a consulta
+  const [user, loadedQuote] = await Promise.all([requirePermission('quotes.read'), getQuote(id)])
+  let quote = loadedQuote
   if (!quote) notFound()
 
   // orcamento da tela antiga vira montagem nova ao abrir (mesmo total)
   if (quote.items_model === 1) {
     await ensureNewItemsModel({ kind: 'quote', id }, 1)
-    quote = (await load()).data ?? quote
+    quote = (await loadQuote(id)) ?? quote
   }
 
+  const supabase = await createClient()
   const [composition, catalog, users, settings, { data: installments }, { data: reserves }, { data: attachments }, { data: workOrder }] =
     await Promise.all([
       getComposition({ kind: 'quote', id }),

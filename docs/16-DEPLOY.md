@@ -4,6 +4,7 @@
 > Produção: https://marmoraria-independencia.vercel.app
 > Projeto Vercel: `tivexy/marmoraria-independencia` · repositório: `RurikDangelo/MarmorariaInde`
 > Supabase: projeto `gzkeermtmkpgnxwwxgaq` (região sa-east-1)
+> Funções da Vercel: `gru1` (São Paulo), fixado em `vercel.json` — a mesma cidade do banco
 > O deploy é automático a cada push na branch `main`.
 
 ## Variáveis de ambiente
@@ -52,7 +53,17 @@ vercel --prod
 ```
 
 Pelo painel: New Project → importar o repositório → adicionar as três variáveis → Deploy.
-O preset do Next.js já cobre build e runtime; não há configuração especial.
+O preset do Next.js cobre build e runtime.
+
+**Região das funções.** O `vercel.json` fixa as funções em **`gru1` (São Paulo)**, ao lado
+do Supabase (`sa-east-1`). Sem isso a Vercel usa Washington (`iad1`) e cada consulta ao
+banco atravessa o continente (~120 ms ida e volta, várias por tela). Se o banco mudar de
+região, mude o `regions` junto. Para conferir, o cabeçalho `x-vercel-id` traz
+`<borda>::<função>::…` e deve mostrar `gru1::gru1`:
+
+```bash
+curl -sI https://marmoraria-independencia.vercel.app/login | grep -i x-vercel-id
+```
 
 ### 3. Supabase
 
@@ -87,6 +98,7 @@ já foi aplicado em `public.schema_migrations` e é seguro rodar de novo.
 - [ ] Migrations aplicadas (`npm run db:push`)
 - [ ] Dados DEMO removidos (`npm run db:seed -- --limpar`)
 - [ ] Variáveis configuradas na Vercel
+- [ ] Funções na mesma região do banco (`x-vercel-id` com `gru1::gru1`)
 - [ ] Redirect URLs configuradas no Supabase
 - [ ] Autocadastro desativado
 - [ ] Usuário administrador criado e testado

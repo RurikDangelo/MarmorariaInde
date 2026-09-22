@@ -3,6 +3,30 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.1] — 2026-09-22
+
+Telas mais rápidas. Detalhes em [03 — Sessão e desempenho](03-ARQUITETURA.md#sessão-e-desempenho).
+
+### Alterado
+
+- As funções da Vercel passam a rodar em **São Paulo (`gru1`)**, ao lado do banco. Rodavam
+  em Washington (`iad1`): cada consulta cruzava o continente (~120 ms ida e volta) e cada
+  tela fazia 4 delas em sequência antes de aparecer.
+- O login é conferido na própria função (`getClaims`, chave pública ES256 do projeto) em
+  vez de uma ida ao servidor de Auth no proxy e outra na página.
+- O layout busca sessão, empresa e alertas em paralelo; OS e orçamento carregam o documento
+  junto com a sessão e as demais consultas num lote só.
+- O dashboard recalcula os alertas depois de responder, sem segurar a tela.
+
+Medido localmente com um Supabase simulado (mesma latência nos dois lados): Dashboard
+744 → 327 ms só com o código novo e ~100 ms com banco e funções na mesma região; as demais
+telas, ~580 → ~70–100 ms.
+
+### Notas de migração
+
+Nenhuma migration. Depois do deploy, `x-vercel-id` deve mostrar `gru1::gru1` (ver
+[16](16-DEPLOY.md)).
+
 ## [0.2.0] — 2026-09-22
 
 OS e orçamento montados **numa tela só**, com a mesma lógica e os mesmos nomes do sistema

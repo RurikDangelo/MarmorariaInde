@@ -26,6 +26,24 @@ Três camadas de autorização, nessa ordem de confiança (da menor para a maior
 3. **RLS no banco** — a última palavra. Mesmo com token válido e requisição forjada,
    o Postgres recusa.
 
+## Sessão e desempenho
+
+Cada ida ao banco custa uma viagem de rede; a tela espera a soma das idas **em sequência**.
+
+- **Sessão sem ida ao Auth.** O proxy (`src/proxy.ts`) e `getSessionUser()` usam
+  `supabase.auth.getClaims()`: o JWT é conferido na própria função com a chave pública do
+  projeto (ES256; o JWKS fica 10 min em cache) e renovado quando vence. `getUser()` ia ao
+  servidor de Auth a cada request — no proxy e de novo na página. Perfil e permissões vêm
+  numa ida só, uma vez por request (`React.cache`).
+- **Sem cascata.** Layouts e páginas rodam em paralelo; dentro de cada um, consultas
+  independentes vão num único `Promise.all`. O documento principal (OS, orçamento) é
+  buscado junto com `requirePermission` — a RLS protege a consulta mesmo se a permissão
+  faltar.
+- **Depois da resposta.** O que não muda a tela (recálculo dos alertas no dashboard) roda
+  com `after()`.
+- **Mesma região.** Funções da Vercel em `gru1`, ao lado do Supabase (ver
+  [16](16-DEPLOY.md)).
+
 ## Estrutura de pastas
 
 ```

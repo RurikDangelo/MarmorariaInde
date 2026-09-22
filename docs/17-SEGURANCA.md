@@ -14,7 +14,8 @@ não consegue ler o financeiro. O Postgres recusa.
 
 | Controle | Como |
 |---|---|
-| Autenticação | Supabase Auth, sessão em cookie httpOnly, renovada no proxy a cada request |
+| Autenticação | Supabase Auth, sessão em cookie httpOnly, renovada no proxy a cada request; assinatura do JWT (ES256) conferida com a chave pública do projeto (`getClaims`) no proxy e em cada página |
+| Usuário desativado | barrado na hora: a página confere `profiles.active` a cada request e o `has_perm()` do banco também |
 | Proteção de rotas | `src/proxy.ts` redireciona quem não tem sessão |
 | RBAC | `roles` → `role_permissions` → `has_perm()` nas policies |
 | RLS | ligada em **todas** as tabelas de `public`; `anon` sem privilégios |
