@@ -40,6 +40,8 @@ O primeiro usuário criado no Supabase Auth vira **ADMINISTRADOR** automaticamen
 | `npm run lint` | ESLint |
 | `npm run db:push` | aplica `supabase/migrations/*.sql` |
 | `npm run db:seed` | popula dados DEMO (`-- --limpar` remove) |
+| `npm run db:test` | testes do banco num Postgres local (`TEST_DATABASE_URL`) |
+| `npm run db:bundle -- 0020` | junta migrations num `.sql` único para o SQL Editor |
 
 ## Documentação
 
@@ -57,7 +59,8 @@ Tudo em [`docs/`](docs/):
 | [08 Produção](docs/08-PRODUCAO.md) | [19 Manual do administrador](docs/19-MANUAL-ADMINISTRADOR.md) |
 | [09 Estoque](docs/09-ESTOQUE.md) | [**20 Manual ponta a ponta**](docs/20-MANUAL-PONTA-A-PONTA.md) |
 | [10 Financeiro](docs/10-FINANCEIRO.md) | [21 Changelog](docs/21-CHANGELOG.md) |
-| [11 Equipe](docs/11-EQUIPE.md) | [CLAUDE.md](CLAUDE.md) — contexto para agentes |
+| [11 Equipe](docs/11-EQUIPE.md) | [**22 Montagem da OS/orçamento**](docs/22-MONTAGEM-DO-ORCAMENTO.md) |
+| | [CLAUDE.md](CLAUDE.md) — contexto para agentes |
 
 ## Segurança em uma linha
 

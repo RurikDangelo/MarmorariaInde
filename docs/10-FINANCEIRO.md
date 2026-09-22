@@ -28,6 +28,18 @@ Receita `PAGO` vinculada a uma OS dispara `tg_sync_work_order_received`, que:
 
 Por isso o valor recebido da OS **nunca** é digitado à mão.
 
+## Parcelas vindas da OS e do orçamento
+
+- **Fatura do orçamento** (Espécie, Forma de Pagamento `0/30/60`, Título/Vencimento/Valor):
+  na aprovação, com "Lançar as parcelas em contas a receber" marcado, cada parcela vira um
+  título `RECEITA` / `PENDENTE` da OS (categoria "Venda de serviço"). Exige `financial.write`
+  e que a soma das parcelas bata com o total.
+- **Fatura da OS** (OS sem orçamento, ou aprovada sem lançar): o mesmo gerador lança o que
+  falta receber (`generate_work_order_receivables`).
+- **RT** (reserva técnica do arquiteto): na OS, "Lançar" cria um título `DESPESA` na
+  categoria "Reserva técnica (RT)" com o vencimento escolhido. A RT com percentual acompanha
+  o total do documento até ser lançada.
+
 ## Tela `/financeiro`
 
 Indicadores: a receber, a pagar, saldo realizado (recebido − pago) e vencido.

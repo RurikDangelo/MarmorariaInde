@@ -4,11 +4,15 @@
 
 | Conceito | Tabela | O que é |
 |---|---|---|
-| **Material** | `materials` | o catálogo: "Granito Preto São Gabriel", preço por m², estoque mínimo |
+| **Material** | `materials` | o catálogo: código, "Granito Preto São Gabriel", preço por m², estoque mínimo |
 | **Item** | `stock_items` | a coisa física: a chapa nº CH-0421, com medidas, custo, local e situação |
 
 Um material tem muitos itens. O alerta de estoque baixo compara os itens disponíveis de
 cada material com o `min_quantity` do material.
+
+O **código** do material (como o "Código Produto" do sistema antigo) é a busca rápida na
+montagem da OS. Vazio = próximo número livre (materiais e produtos dividem a numeração).
+Material também pode ser cadastrado na hora, dentro da OS (exige `stock.write`).
 
 ## Itens
 
@@ -39,6 +43,8 @@ DISPONÍVEL ──reservar──► RESERVADA ──consumir──► CONSUMIDA
 
 Tudo isso na OS, aba **Material**:
 
+- **Necessidade da montagem** — m² com perda que os produtos da OS pedem de cada material,
+  ao lado do que já está reservado e do que falta separar
 - **Reservar material** — escolhe entre os itens disponíveis (retalhos aparecem marcados)
 - **Consumir** — informa a área utilizada e, se houver, as medidas da sobra aproveitável;
   o sistema cria o retalho automaticamente com código derivado (`CH-0421-Rab12`)

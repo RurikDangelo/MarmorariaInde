@@ -32,44 +32,69 @@ administrativo → `FINANCEIRO`, pátio → `ESTOQUE`.
 Em **Equipe → Equipes**, crie "Equipe Corte A", "Instalação 1", "Medição Campo" e marque
 os integrantes.
 
-### 1.5 Cadastrar materiais e chapas
+### 1.5 Cadastrar materiais, produtos e serviços
 
-**Estoque → Novo material**: "Granito Preto São Gabriel", tipo Granito, cor Preto,
-nacional, 20 mm, R$ 620,00/m², estoque mínimo 3.
+**Estoque → Novo material**: código 155, "Gran. Preto São Gabriel", tipo Granito, cor Preto,
+nacional, 20 mm, R$ 600,00/m², estoque mínimo 3.
+
+**Cadastros**: os produtos que você vende (Pia e Balcão, Bancada, Soleira), acabamentos por
+metro linear (Acabamento 45° R$ 120/MT), serviços (Furar e Colar Cuba R$ 150/UN),
+revendas (Cuba Inox nº 2 R$ 290/PÇ) e insumos (cola — custo). Em **Listas**, os nomes de
+ambiente, validades, previsões de entrega e formas de pagamento (`0/30/60`).
+
+> Não precisa cadastrar tudo antes: qualquer um desses pode ser criado na hora, dentro da
+> tela da OS.
 
 **Estoque → Entrada de estoque**: chapa `CH-0421`, 3,20 m × 1,90 m, 20 mm,
 custo R$ 3.400,00, Pátio de chapas. Repita para cada chapa que chegou.
 
+**Configurações → Enviar logo**: o logo sai no topo da OS emitida e do orçamento.
+
 ---
 
-## Parte 2 — Do contato à OS
+## Parte 2 — Do contato à OS (tudo numa tela)
 
-### 2.1 Cadastrar a cliente
+### 2.1 Abrir a OS (ou o orçamento)
 
-**Clientes → Novo cliente**: Ana Paula Ribeiro, CPF, telefone/WhatsApp, endereço completo
-(é para lá que a equipe vai medir e instalar).
+**Ordens de serviço → Nova OS** (ou **Orçamentos → Novo orçamento**; a tela é a mesma).
 
-### 2.2 Orçamento (opcional, mas recomendado)
+**Cliente**: digite "Ana" — se ela não existir, **Cadastrar "Ana Paula Ribeiro"** abre o
+cadastro já com o nome; salve e ela volta escolhida, com o endereço da obra preenchido.
 
-**Orçamentos → Novo orçamento** → cliente Ana Paula → **Adicionar item**:
+Preencha vendedor, **Previsão de Entrega** (20 dias úteis → a data sai sozinha) e o
+**Tipo de Pagamento**. **Salvar (F2)** grava — ou já siga para os produtos: a OS é criada
+na primeira ação.
 
-- Bancada da pia · Cozinha · Granito Preto · 2,40 × 0,60 · 1 un · R$ 620/m² · Polido · Boleada
-- Frontão · Cozinha · 2,40 × 0,10 · 1 un
+### 2.2 Ambientes e produtos (a montagem)
 
-O total sai calculado. Marque **como enviado** quando mandar para a cliente.
+1. **Ambientes → +** → "Cozinha" (ou crie direto no produto).
+2. **Incluir produto** → **Produto**: Pia e Balcão · Quant. 1 · Unid. M².
+3. **Materiais**: busque "155" ou "preto sao" → Gran. Preto São Gabriel (R$ 600/m², cadeado
+   fechado = preço do cadastro).
+4. **Peças**: lance cada peça (Quantidade, Comprimento, Largura, % Perda, Número, Nome,
+   QTD de Etiquetas) — ou preencha Comprimento/Largura/Borda/Rodabanca/Pé no topo e use
+   **Gerar peças**. O **Total M²** e o **Total com Perda** aparecem na hora.
+5. **Acabamentos** (Acabamento 45° 9,12 MT), **Serviços** (Furar e Colar Cuba, Furo
+   Cooktop, Instalação 4,84 MT), **Revendas** (Cuba Inox), **Insumos** (cola — só custo).
+6. O rodapé mostra Total de Materiais, Total M², Acabamentos, Serviços, Revendas, Insumos e o
+   **Total Geral do Item**. **F2** grava; **Esc** cancela.
 
-### 2.3 Aprovação → OS
+Exemplo real (da impressão do sistema antigo): 11 peças = 4,0238 m² → R$ 2.414,28 de
+material; item R$ 4.805,68.
 
-Cliente aprovou? **Aprovar e gerar OS** → informe o prazo → o sistema:
+### 2.3 Totais, fatura e emissão
 
-- muda o orçamento para APROVADO
-- cria a **OS-2026-0001** com o cliente e o endereço
-- copia os itens como peças da OS
-- registra tudo na timeline
+- **Frete, Outras Despesas, Desconto** → Total da OS (Salvar).
+- **Fatura**: Espécie + Forma de Pagamento → **Gerar parcelas** → ajuste → lance no
+  contas a receber (OS) ou salve a fatura (orçamento).
+- **RT's**: arquiteto que indicou, % ou valor fixo (não vai para o cliente).
+- **Emitir OS**: abre a folha com o logo; imprima ou salve em PDF. Desligue "Valores" para a
+  via da oficina. **Etiquetas** imprime uma etiqueta por peça.
 
-Você já cai na OS criada.
+### 2.4 Orçamento aprovado → OS
 
-> Sem orçamento? **Ordens de serviço → Nova OS** e adicione as peças direto.
+No orçamento, **Aprovar e gerar OS** → prazo → (opcional) lançar as parcelas → a OS nasce
+com **toda** a montagem, RT e anexos, e o orçamento fica travado como foi vendido.
 
 ---
 
@@ -97,8 +122,9 @@ Fotos vão pela aba **Arquivos**, etapa *Medição*.
 ### 3.3 Conferir e aprovar
 
 De volta ao escritório: **Aprovar medição**.
-Se a medida real ficou diferente do orçamento, use **Gerar peças da OS** para criar as
-peças a partir do que foi medido e ajuste preço e acabamento na aba Resumo.
+Se a medida real ficou diferente do orçamento, ajuste as peças na montagem da OS — ou use
+**Gerar peças da OS** para criar produtos a partir do que foi medido (no ambiente de mesmo
+nome) e escolha o material na montagem.
 
 Cada alteração da medição vira uma **revisão** com o "de → para" gravado.
 
@@ -125,8 +151,10 @@ A chapa fica **RESERVADA**, some da lista de disponíveis e a timeline registra
 ### 5.1 Separação e corte
 
 Mova a OS para **Corte**.
-Aba **Produção → Iniciar etapa**: `Separação`, responsável. Ao terminar, **Concluir**.
-Depois `Corte`, mesmo caminho. A duração é calculada sozinha.
+Aba **Produção → Iniciar etapa**: `Separação`, responsável e, se quiser, a **peça**
+("Cozinha · Pia e Balcão · Peça 3 — Saia"). Ao terminar, **Concluir**.
+Depois `Corte`, mesmo caminho. A duração é calculada sozinha. As etiquetas das peças
+(**Etiquetas** no topo da OS) identificam cada peça na bancada.
 
 ### 5.2 Baixar o material
 
@@ -181,7 +209,10 @@ Fotos de antes e depois pela aba **Arquivos**.
 
 ### 7.1 Entrada
 
-**Financeiro → Novo lançamento**: Receita, "Entrada 50% — bancada Ana Paula",
+As parcelas da **Fatura** (aprovação do orçamento ou "Lançar no contas a receber" na OS)
+já estão no financeiro, vinculadas à OS. Recebeu a entrada? **Financeiro → Dar baixa**.
+
+Lançamento avulso: **Financeiro → Novo lançamento**: Receita, "Entrada 50% — bancada Ana Paula",
 categoria *Entrada / sinal*, **vincule a OS-2026-0001**, valor, vencimento, situação Pago.
 
 O **valor recebido da OS se atualiza sozinho** e a timeline registra o pagamento.
@@ -212,8 +243,9 @@ Título vencido e não pago → alerta **crítico**.
 ## Resumo do fluxo
 
 ```
-Cliente → Orçamento → (aprovar) → OS
-   → Medição → checklist → aprovar → gerar peças
+Nova OS (ou orçamento): cliente + ambientes + produtos/peças/m² + fatura → Emitir OS
+   (orçamento: aprovar → OS com toda a montagem e as parcelas no financeiro)
+   → Medição → checklist → aprovar → ajustar peças
    → Reservar chapa → Corte → Consumir (gera retalho) → Acabamento → Conferência
    → Expedição → Instalação → checklist → Finalizar OS
    → Financeiro: entrada + saldo → OS quitada
