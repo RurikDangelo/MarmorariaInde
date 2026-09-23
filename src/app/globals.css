@@ -11,6 +11,18 @@
    a partir de company_settings - ver src/components/theme/brand-theme.tsx.
    ========================================================================== */
 
+/* Altura visivel da tela. "dvh" so existe a partir do Chrome 108: em navegador
+   antigo a regra inteira era descartada e janelas/modais perdiam o limite de
+   altura (e a rolagem). Com a variavel, o antigo cai para "vh". */
+:root {
+  --screen-h: 100vh;
+}
+@supports (height: 100dvh) {
+  :root {
+    --screen-h: 100dvh;
+  }
+}
+
 :root {
   --radius: 0.625rem;
 

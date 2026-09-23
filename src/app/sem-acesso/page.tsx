@@ -15,7 +15,7 @@ export default async function NoAccessPage({
   const user = await getSessionUser()
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
+    <div className="flex min-h-(--screen-h) items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-warning/15">
           <ShieldAlert className="size-6 text-warning" />

@@ -17,7 +17,7 @@ export default function ErrorBoundary({
   }, [error])
 
   return (
-    <div className="flex min-h-[60dvh] items-center justify-center px-4">
+    <div className="flex min-h-[calc(var(--screen-h)*0.6)] items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10">
           <AlertTriangle className="size-6 text-destructive" />

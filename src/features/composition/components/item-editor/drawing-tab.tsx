@@ -80,7 +80,7 @@ export function DrawingTab({
         <div className="overflow-hidden rounded-md border bg-muted/30">
           {url && !isPdf ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt="Desenho do produto" className="mx-auto max-h-[45dvh] object-contain" />
+            <img src={url} alt="Desenho do produto" className="mx-auto max-h-[calc(var(--screen-h)*0.45)] object-contain" />
           ) : (
             <p className="px-3 py-8 text-center text-sm text-muted-foreground">
               {isPdf ? 'Projeto em PDF anexado.' : 'Carregando desenho…'}

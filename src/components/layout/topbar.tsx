@@ -67,7 +67,7 @@ export function Topbar({
             )}
             <span className="truncate font-semibold">{companyName}</span>
           </SheetTitle>
-          <div className="overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <SidebarNav permissions={permissions} onNavigate={() => setMenuOpen(false)} />
           </div>
         </SheetContent>

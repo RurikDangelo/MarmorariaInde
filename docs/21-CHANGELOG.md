@@ -3,6 +3,21 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.2] — 2026-09-23
+
+Computadores com tela pequena ou navegador desatualizado.
+
+### Corrigido
+
+- Janelas (edição de item do orçamento/OS, cadastros) perdiam o limite de altura e a
+  rolagem em navegadores anteriores ao Chrome 108, que não entendem a unidade `dvh`: o
+  botão de gravar ficava fora da tela. A altura agora vem de `--screen-h` (`globals.css`),
+  que usa `dvh` quando existe e `vh` quando não.
+- Menu lateral no modo compacto (telas com menos de 1024 px) não rolava.
+- Emitir OS/orçamento: os itens de "Exibir" não marcavam nem desmarcavam em navegadores
+  anteriores ao Chrome 113 (`URLSearchParams.size`). A marcação também passa a mudar na
+  hora, sem esperar o documento recarregar.
+
 ## [0.2.1] — 2026-09-22
 
 Telas mais rápidas. Detalhes em [03 — Sessão e desempenho](03-ARQUITETURA.md#sessão-e-desempenho).

@@ -6,7 +6,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const companyName = settings?.company_name ?? 'MARMORARIA INDEPENDENCIA'
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-2">
+    <div className="grid min-h-(--screen-h) lg:grid-cols-2">
       {/* Painel de marca - oculto no celular para nao empurrar o formulario */}
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-secondary p-10 lg:flex">
         <div

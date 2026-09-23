@@ -23,9 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const companyName = settings?.company_name ?? 'Marmoraria Independência'
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-(--screen-h)">
       {/* Sidebar fixa no desktop */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r bg-sidebar lg:flex print:hidden">
+      <aside className="sticky top-0 hidden h-(--screen-h) w-60 shrink-0 flex-col border-r bg-sidebar lg:flex print:hidden">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 border-b px-4 py-3.5 transition-colors hover:bg-sidebar-accent"

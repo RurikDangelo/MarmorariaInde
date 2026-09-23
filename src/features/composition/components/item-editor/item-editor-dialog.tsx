@@ -100,7 +100,7 @@ export function ItemEditorDialog({
     <>
       <Dialog open onOpenChange={(open) => !open && requestClose()}>
         <DialogContent
-          className="flex h-[min(94dvh,960px)] max-w-6xl flex-col gap-0 p-0 max-sm:inset-0 max-sm:h-dvh max-sm:max-h-none max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none"
+          className="flex h-[min(calc(var(--screen-h)*0.94),960px)] max-w-6xl flex-col gap-0 p-0 max-sm:inset-0 max-sm:h-(--screen-h) max-sm:max-h-none max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none"
           onInteractOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => {
             event.preventDefault()
