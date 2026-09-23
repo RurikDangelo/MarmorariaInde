@@ -13,6 +13,8 @@ export const metadata: Metadata = { title: 'Auditoria' }
 
 const TABLE_LABELS: Record<string, string> = {
   work_orders: 'Ordens de serviço',
+  quotes: 'Orçamentos',
+  technical_reserves: "RT's",
   profiles: 'Usuários',
   financial_transactions: 'Financeiro',
   stock_items: 'Estoque',

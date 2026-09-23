@@ -1,8 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { assertPermission } from '@/lib/auth/session'
+import { actionError, actionOk, type ActionResult } from '@/lib/action-result'
+import { removeStoredFiles, type StoredFile } from '@/lib/storage'
 import {
   cancelWorkOrderSchema,
   formToObject,
@@ -156,4 +159,54 @@ export async function addWorkOrderNote(_prev: ActionState, formData: FormData): 
 
   revalidatePath(`/os/${parsed.data.work_order_id}`)
   return { success: 'Observação registrada.' }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reativar e excluir                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Desfaz o cancelamento e devolve a OS para a etapa que ela tinha antes. */
+export async function reactivateWorkOrder(workOrderId: string): Promise<ActionResult> {
+  try {
+    await assertPermission('work_orders.write')
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .rpc('reactivate_work_order', { p_work_order_id: z.guid().parse(workOrderId) })
+      .returns<string>()
+    if (error) return actionError(error)
+
+    revalidatePath(`/os/${workOrderId}`)
+    revalidatePath('/os')
+    revalidatePath('/os/kanban')
+    return actionOk(null, `OS reativada em ${data ?? 'Novas'}.`)
+  } catch (error) {
+    return actionError(error)
+  }
+}
+
+/**
+ * Exclui a OS do banco com tudo que pendura nela (ambientes, produtos, peças,
+ * medições, produção, instalação, anexos). O banco recusa se houver lançamento
+ * já baixado e devolve os arquivos que ficaram órfãos no Storage.
+ */
+export async function deleteWorkOrder(workOrderId: string, reason?: string): Promise<ActionResult> {
+  try {
+    await assertPermission('work_orders.delete')
+    const supabase = await createClient()
+    const { data, error } = await supabase.rpc('delete_work_order', {
+      p_work_order_id: z.guid().parse(workOrderId),
+      p_reason: z.string().trim().max(500).optional().parse(reason) || null,
+    })
+    if (error) return actionError(error)
+
+    // a funcao devolve um jsonb; o client sem tipos gerados nao sabe a forma
+    const removed = data as { number: string; files: StoredFile[] } | null
+    await removeStoredFiles(removed?.files ?? [])
+    revalidatePath('/os')
+    revalidatePath('/os/kanban')
+    revalidatePath('/dashboard')
+    return actionOk(null, `${removed?.number ?? 'Ordem de serviço'} excluída.`)
+  } catch (error) {
+    return actionError(error)
+  }
 }

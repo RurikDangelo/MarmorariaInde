@@ -22,6 +22,7 @@ não consegue ler o financeiro. O Postgres recusa.
 | Escalada de privilégio | trigger impede o usuário de mudar o próprio papel/situação |
 | Validação de entrada | Zod em toda Server Action, antes de tocar o banco |
 | Auditoria | trigger `SECURITY DEFINER` grava em `audit_logs`; sem policy de insert/update/delete |
+| Exclusão de documentos | só por `delete_work_order`/`delete_quote` (`SECURITY DEFINER`, exigem `work_orders.delete`/`quotes.delete`); a linha inteira e o motivo ficam em `audit_logs` |
 | Storage | 4 buckets, 3 privados; policies herdam a permissão do módulo |
 | Arquivos privados | acesso por URL assinada de 30 minutos, gerada no servidor |
 | Segredos | nenhum no repositório; `.env.local` no `.gitignore` |

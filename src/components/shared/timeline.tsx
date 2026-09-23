@@ -12,6 +12,7 @@ import {
   Ruler,
   Truck,
   User,
+  RotateCcw,
   XCircle,
 } from 'lucide-react'
 import { cn, formatDateTime, initials } from '@/lib/utils'
@@ -34,6 +35,7 @@ const EVENT_CONFIG: Record<string, { icon: React.ElementType; tone: string }> = 
   ANEXO: { icon: Paperclip, tone: 'bg-muted text-muted-foreground' },
   OBSERVACAO: { icon: FileText, tone: 'bg-muted text-muted-foreground' },
   CANCELAMENTO: { icon: XCircle, tone: 'bg-destructive/12 text-destructive' },
+  REATIVACAO: { icon: RotateCcw, tone: 'bg-success/12 text-success' },
   ITEM: { icon: Package, tone: 'bg-primary/12 text-primary' },
 }
 

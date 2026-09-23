@@ -7,6 +7,7 @@ export const PERMISSIONS = [
   'quotes.read',
   'quotes.write',
   'quotes.approve',
+  'quotes.delete',
   'work_orders.read',
   'work_orders.write',
   'work_orders.status',

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { assertPermission } from '@/lib/auth/session'
 import { actionError, actionOk, type ActionResult } from '@/lib/action-result'
+import { removeStoredFiles, type StoredFile } from '@/lib/storage'
 
 const text = (max: number) => z.string().trim().max(max)
 const money = z.number().min(0, 'Valor não pode ser negativo').max(99_999_999)
@@ -199,6 +200,48 @@ export async function deleteQuoteAttachment(quoteId: string, attachmentId: strin
     }
     revalidateQuote(quoteId)
     return actionOk(null, 'Arquivo removido.')
+  } catch (error) {
+    return actionError(error)
+  }
+}
+
+/** Volta o orçamento cancelado/recusado para rascunho. */
+export async function reactivateQuote(quoteId: string): Promise<ActionResult> {
+  try {
+    await assertPermission('quotes.write')
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status: 'RASCUNHO', rejected_reason: null })
+      .eq('id', z.guid().parse(quoteId))
+    if (error) return actionError(error)
+    revalidateQuote(quoteId)
+    return actionOk(null, 'Orçamento reaberto como rascunho.')
+  } catch (error) {
+    return actionError(error)
+  }
+}
+
+/**
+ * Exclui o orçamento do banco com a montagem, a fatura, as RT's e os anexos.
+ * O banco recusa se ele já tiver virado OS e devolve os arquivos órfãos.
+ */
+export async function deleteQuote(quoteId: string, reason?: string): Promise<ActionResult> {
+  try {
+    await assertPermission('quotes.delete')
+    const supabase = await createClient()
+    const { data, error } = await supabase.rpc('delete_quote', {
+      p_quote_id: z.guid().parse(quoteId),
+      p_reason: z.string().trim().max(500).optional().parse(reason) || null,
+    })
+    if (error) return actionError(error)
+
+    // a funcao devolve um jsonb; o client sem tipos gerados nao sabe a forma
+    const removed = data as { number: string; files: StoredFile[] } | null
+    await removeStoredFiles(removed?.files ?? [])
+    revalidatePath('/orcamentos')
+    revalidatePath('/dashboard')
+    return actionOk(null, `Orçamento ${removed?.number ?? ''} excluído.`.replace('  ', ' '))
   } catch (error) {
     return actionError(error)
   }

@@ -91,7 +91,17 @@ material; item R$ 4.805,68.
 - **Emitir OS**: abre a folha com o logo; imprima ou salve em PDF. Desligue "Valores" para a
   via da oficina. **Etiquetas** imprime uma etiqueta por peça.
 
-### 2.4 Orçamento aprovado → OS
+### 2.4 Errou? Cancelar, reativar ou excluir
+
+**Cancelar OS** (com motivo) tira a OS do Kanban e guarda tudo — é o caminho normal quando
+o cliente desiste. Depois, **Reativar OS** devolve a OS para a etapa em que ela estava.
+
+**Excluir** é para o que nunca deveria existir: OS ou orçamento duplicado, teste, engano.
+Some do sistema com peças, anexos e títulos não pagos; o sistema pede o número digitado e
+guarda na auditoria quem excluiu e por quê. OS com pagamento já baixado não é excluída, e
+orçamento que virou OS também não.
+
+### 2.5 Orçamento aprovado → OS
 
 No orçamento, **Aprovar e gerar OS** → prazo → (opcional) lançar as parcelas → a OS nasce
 com **toda** a montagem, RT e anexos, e o orçamento fica travado como foi vendido.

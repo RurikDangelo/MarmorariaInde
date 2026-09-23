@@ -87,10 +87,35 @@ Alimentada automaticamente: criação, status, prioridade, responsável, prazo, 
 produtos e ambientes (`ITEM`), medição, produção, material, instalação, pagamento, RT e
 anexos. Observações manuais na aba Timeline. É **imutável**.
 
-## Cancelamento
+## Cancelar, reativar e excluir
 
-Exige motivo. A OS sai do Kanban, mantém histórico e lançamentos, e recebe
-`cancelled_at` + `cancel_reason`.
+**Cancelar OS** (`work_orders.write`) exige motivo. A OS sai do Kanban, mantém histórico e
+lançamentos, e recebe `cancelled_at` + `cancel_reason`. É o caminho normal: nada se perde.
+
+**Reativar OS** aparece no lugar de Cancelar quando a OS está cancelada. O cancelamento é
+desfeito e a OS volta para a **etapa em que estava** (lida da timeline; sem histórico de
+etapa, volta para Novas). Fica registrado como `REATIVACAO`.
+
+**Excluir** (`work_orders.delete` — Administrador e Gestor) apaga a OS do banco. Pede o
+número digitado e um motivo opcional. Vão junto: ambientes, produtos, peças, composição,
+medições, produção, instalações, anexos, fotos, desenhos e os **títulos ainda não pagos**.
+
+O banco recusa a exclusão se houver **lançamento já baixado** (dinheiro que entrou não some
+do financeiro) — nesse caso, cancele a OS ou acerte o financeiro antes. O que fica:
+
+| Continua no sistema | Como |
+|---|---|
+| Lançamentos pagos | impedem a exclusão; só saem se você removê-los antes |
+| Movimentos de estoque | ficam no histórico, sem o vínculo com a OS |
+| Chapas reservadas | voltam para **DISPONÍVEL** |
+| Planos de ação | continuam, sem o vínculo |
+| Registro da exclusão | `audit_logs` guarda a linha inteira da OS, quem excluiu e o motivo |
+
+Arquivos do Storage são apagados junto, menos os que outro documento ainda usa (o desenho
+copiado do orçamento, por exemplo).
+
+O orçamento tem os mesmos botões: **Reabrir** (volta o cancelado/recusado para rascunho) e
+**Excluir** (`quotes.delete`). Orçamento que já virou OS não é excluído — exclua a OS antes.
 
 ## Emissão
 

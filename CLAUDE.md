@@ -74,6 +74,10 @@ docs/                    # documentação obrigatória
   da OS (`quote_id` XOR `work_order_id`) e só é gravada por funções `SECURITY DEFINER`
   (`save_line_item`, `save_environment`...). As tabelas são só leitura pela API. Ver
   `docs/22-MONTAGEM-DO-ORCAMENTO.md`. A OS é uma **tela única** (`/os/nova`, `/os/[id]`).
+- **Excluir** OS/orçamento é `delete_work_order`/`delete_quote` (`SECURITY DEFINER`): trava
+  documento com dinheiro baixado, libera chapa reservada e devolve os arquivos órfãos do
+  Storage. Cancelar (`cancelled_at`) continua sendo o caminho normal, com `reactivate_work_order`
+  para desfazer.
 - Migrations precisam ser idempotentes (`db:push -- --all`) e testadas com
   `npm run db:test` (Postgres local) antes de ir para produção.
 

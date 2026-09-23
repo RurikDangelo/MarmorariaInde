@@ -31,7 +31,7 @@ Formato `recurso.acao`. Catálogo completo em `0009_seed_catalog.sql` e visível
 
 ```
 customers.read/write
-quotes.read/write/approve
+quotes.read/write/approve/delete
 work_orders.read/write/status/delete
 measurements.read/write
 production.read/write

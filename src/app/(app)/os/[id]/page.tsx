@@ -26,6 +26,7 @@ import { summarizeMaterials } from '@/features/composition/components/materials-
 import { WorkOrderEditor } from '@/features/work-orders/components/editor/work-order-editor'
 import { WorkOrderProcessTabs } from '@/features/work-orders/components/process-tabs'
 import { CancelWorkOrderDialog, StatusChanger } from '@/features/work-orders/components/status-changer'
+import { DeleteWorkOrderButton, ReactivateWorkOrderButton } from '@/features/work-orders/components/danger-actions'
 import { pieceOptions, workOrderEditorPermissions } from '@/features/work-orders/editor-data'
 import type { FinancialTransaction, ProductionStep, StockItem, TechnicalReserve } from '@/types/database'
 
@@ -117,6 +118,8 @@ export default async function WorkOrderDetailPage({ params }: { params: Promise<
               <StatusChanger workOrderId={workOrder.id} currentStatus={workOrder.status_code} statuses={statuses} />
             )}
             {can('work_orders.write') && !workOrder.cancelled_at && <CancelWorkOrderDialog workOrderId={workOrder.id} />}
+            {can('work_orders.write') && workOrder.cancelled_at && <ReactivateWorkOrderButton workOrderId={workOrder.id} />}
+            {can('work_orders.delete') && <DeleteWorkOrderButton workOrderId={workOrder.id} number={workOrder.number} />}
           </div>
         }
       />

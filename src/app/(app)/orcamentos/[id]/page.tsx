@@ -11,6 +11,7 @@ import { getAssignableUsers } from '@/features/work-orders/queries'
 import { ensureNewItemsModel, getCatalog, getComposition } from '@/features/composition/queries'
 import { QuoteEditor } from '@/features/quotes/components/editor/quote-editor'
 import { quoteEditorPermissions } from '@/features/quotes/editor-data'
+import { DeleteQuoteButton, ReactivateQuoteButton } from '@/features/quotes/components/danger-actions'
 import type { Quote, QuoteAttachment, QuoteInstallment, TechnicalReserve } from '@/types/database'
 
 const QUOTE_SELECT = `*,
@@ -65,6 +66,14 @@ export default async function QuoteDetailPage({ params }: { params: Promise<{ id
         description={quote.customer?.name ?? undefined}
         breadcrumb={[{ label: 'Orçamentos', href: '/orcamentos' }, { label: quote.number }]}
         badge={<GenericStatusBadge status={quote.status} />}
+        actions={
+          <div className="no-print flex flex-wrap items-center gap-2">
+            {user.permissions.has('quotes.write') && ['CANCELADO', 'RECUSADO'].includes(quote.status) && (
+              <ReactivateQuoteButton quoteId={quote.id} />
+            )}
+            {user.permissions.has('quotes.delete') && <DeleteQuoteButton quoteId={quote.id} number={quote.number} />}
+          </div>
+        }
       />
 
       {quote.status === 'APROVADO' && (

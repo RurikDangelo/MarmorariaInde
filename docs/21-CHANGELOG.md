@@ -3,6 +3,37 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] — 2026-09-23
+
+Excluir de vez, e desfazer o cancelamento. Detalhes em
+[06 — Cancelar, reativar e excluir](06-ORDENS-DE-SERVICO.md#cancelar-reativar-e-excluir).
+
+### Adicionado
+
+- **Excluir OS** e **excluir orçamento**: some do banco com ambientes, produtos, peças,
+  composição, medições, produção, instalação, anexos, fatura e RT. Pede o número digitado e
+  um motivo (que fica na auditoria junto com a linha inteira do documento).
+- **Reativar OS** cancelada: volta para a etapa em que estava, com o histórico inteiro.
+- **Reabrir orçamento** cancelado ou recusado (volta para rascunho) — antes só dava para
+  mexer na situação pelo cabeçalho.
+- Permissão **Excluir orçamentos** (`quotes.delete`), de Administrador e Gestor, como já
+  existia para OS.
+
+### Travas
+
+- OS com **lançamento já pago** não é excluída (o dinheiro que entrou não some do
+  financeiro). Títulos ainda não pagos vão junto com a OS.
+- Orçamento que **já virou OS** não é excluído: exclua a OS antes.
+- Chapas reservadas para a OS excluída voltam para DISPONÍVEL; movimentos de estoque e
+  planos de ação continuam no histórico, sem o vínculo.
+- Arquivos do Storage são apagados junto, menos os que outro documento ainda usa.
+
+### Notas de migração
+
+Migration `0027_excluir_e_reativar.sql`, aditiva. Em produção: `npm run db:bundle -- 0027`
+e colar o arquivo no SQL Editor. Ela também acrescenta o motivo da exclusão ao gatilho de
+auditoria (`app.audit_note`).
+
 ## [0.2.2] — 2026-09-23
 
 Computadores com tela pequena ou navegador desatualizado.
