@@ -2,17 +2,26 @@
 
 import * as React from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Search, X } from 'lucide-react'
+import { Loader2, Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-/** Atualiza a query string preservando os demais filtros. */
+/**
+ * Atualiza a query string preservando os demais filtros.
+ *
+ * A navegação vai dentro de `startTransition` por um motivo concreto: sem isso
+ * o Next considera a troca urgente, descarta a tela e exibe o `loading.tsx` —
+ * o dashboard inteiro desmonta e remonta a cada mudança de período. Dentro da
+ * transição a tela atual continua no lugar enquanto o servidor recalcula, e
+ * `pending` dá o feedback de que algo está acontecendo.
+ */
 function useUrlFilters() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [pending, startTransition] = React.useTransition()
 
   const setParam = React.useCallback(
     (key: string, value: string | null) => {
@@ -20,12 +29,19 @@ function useUrlFilters() {
       if (value && value !== 'TODOS') params.set(key, value)
       else params.delete(key)
       params.delete('pagina')
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+      const query = params.toString()
+      startTransition(() => {
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+      })
     },
     [pathname, router, searchParams],
   )
 
-  return { searchParams, setParam, pathname, router }
+  const clear = React.useCallback(() => {
+    startTransition(() => router.replace(pathname, { scroll: false }))
+  }, [pathname, router])
+
+  return { searchParams, setParam, clear, pending, pathname, router }
 }
 
 export function SearchInput({
@@ -87,12 +103,17 @@ export function FilterSelect({
   allLabel?: string
   className?: string
 }) {
-  const { searchParams, setParam } = useUrlFilters()
+  const { searchParams, setParam, pending } = useUrlFilters()
   const current = searchParams.get(paramName) ?? 'TODOS'
 
   return (
     <Select value={current} onValueChange={(value) => setParam(paramName, value)}>
-      <SelectTrigger className={cn('w-full sm:w-44', className)} aria-label={label}>
+      <SelectTrigger
+        className={cn('w-full sm:w-44', className)}
+        aria-label={label}
+        aria-busy={pending || undefined}
+      >
+        {pending && <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />}
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent>
@@ -114,7 +135,7 @@ export function FilterBar({ children, className }: { children: React.ReactNode; 
 }
 
 export function ClearFiltersButton({ keys }: { keys: string[] }) {
-  const { searchParams, pathname, router } = useUrlFilters()
+  const { searchParams, clear, pending } = useUrlFilters()
   const active = keys.some((key) => searchParams.get(key))
   if (!active) return null
 
@@ -122,7 +143,8 @@ export function ClearFiltersButton({ keys }: { keys: string[] }) {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => router.replace(pathname, { scroll: false })}
+      onClick={clear}
+      disabled={pending}
       className="text-muted-foreground"
     >
       <X className="size-3.5" />

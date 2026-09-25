@@ -3,6 +3,43 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.3] — 2026-09-25
+
+Dashboard mais legível: gráficos com interação, números que transicionam e uma
+linguagem de movimento única. Detalhes em [12 — Dashboard](12-DASHBOARD.md).
+
+### Corrigido
+
+- **Trocar o período desmontava o dashboard inteiro.** A navegação não estava em
+  , então o Next descartava a tela e exibia o esqueleto a cada
+  mudança. Agora a tela permanece e só os números transicionam.
+- Eixo do gráfico imprimia **"1 mil" em dois traços diferentes** (1.050 e 1.400
+  arredondavam igual). Passou a usar uma casa decimal: "1,1 mil" e "1,4 mil".
+- Painel de alertas dizia **"Tudo em dia" com OS atrasada na tela**. Alerta
+  dispensado nunca voltava, e o painel tratava ausência de alerta como ausência de
+  problema. Agora avisa quantas pendências existem sem aviso ativo.
+- Plural manual ("2 ordem(ns)").
+
+### Alterado
+
+- **Paleta dos gráficos** derivada do verde da marca: receita /,
+  despesa /. Despesa é azul e não vermelho por duas razões —
+  verde × vermelho tem ΔE 6,5 em deuteranopia (some), e vermelho no sistema
+  significa estado ruim, não gasto normal. O verde puro da marca () ficou
+  de fora por ter contraste 2,89:1 no tema claro, abaixo do mínimo de 3:1.
+- Receita × despesa: legenda com total por série, hover que destaca o mês e recua
+  os demais, tooltip com saldo.
+- OS por etapa virou barra horizontal com contagem e percentual, cada linha levando
+  à lista filtrada. Sem Recharts: é HTML e CSS, sem JS no cliente.
+- KPIs contam até o valor (SSR preservado: o HTML já traz o número final).
+- Esqueleto próprio do dashboard, com a mesma grade do conteúdo real.
+
+### Acessibilidade
+
+-  zera as animações no CSS e desliga as controladas em
+  JavaScript (Recharts, count-up), sem esconder informação.
+- Severidade de alerta e prazo de entrega passam a ser ditos em ícone e texto, não
+  só em cor.
 ## [0.2.2] — 2026-09-23
 
 Computadores com tela pequena ou navegador desatualizado.

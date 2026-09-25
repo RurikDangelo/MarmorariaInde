@@ -68,10 +68,13 @@
   --sidebar-border: oklch(0.906 0.004 80);
   --sidebar-accent: oklch(0.938 0.006 80);
 
-  /* Paleta de dados validada para daltonismo e contraste (modo claro). */
-  --chart-1: #B4703B;
+  /* Paleta de dados validada para daltonismo e contraste (modo claro).
+     Serie 1 e o verde da marca escurecido ate passar 3:1 sobre o fundo claro;
+     serie 2 e azul (nao vermelho: verde x vermelho reprova em deuteranopia,
+     e vermelho fica reservado para estado ruim de verdade). */
+  --chart-1: #05913A;
   --chart-2: #2563EB;
-  --chart-3: #15803D;
+  --chart-3: #B4703B;
   --chart-4: #B45309;
   --chart-5: #6D28D9;
 }
@@ -120,9 +123,9 @@
   --sidebar-accent: oklch(0.262 0.008 65);
 
   /* Passos proprios do modo escuro - nao e inversao automatica. */
-  --chart-1: #C07633;
+  --chart-1: #18A94E;
   --chart-2: #3B82F6;
-  --chart-3: #22A559;
+  --chart-3: #C07633;
   --chart-4: #D97706;
   --chart-5: #8B5CF6;
 }
@@ -214,6 +217,109 @@
   }
   .scroll-snap-start {
     scroll-snap-align: start;
+  }
+}
+
+/* ==========================================================================
+   Linguagem de movimento
+   Uma escala só, usada por todo o sistema. Animação existe para explicar de
+   onde o dado veio ou confirmar que algo respondeu — nunca para enfeitar.
+   ========================================================================== */
+
+:root {
+  --motion-hover: 150ms;
+  --motion-micro: 200ms;
+  --motion-enter: 320ms;
+  --motion-chart: 700ms;
+  --motion-content: 260ms;
+
+  /* saída rápida, chegada suave: o olho lê como "assentou", não como "quicou" */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@layer utilities {
+  /* Entrada de bloco: sobe 6px e aparece. O atraso vem de --enter-index. */
+  .motion-enter {
+    animation: motion-enter var(--motion-enter) var(--ease-out) both;
+    animation-delay: calc(var(--enter-index, 0) * 45ms);
+  }
+
+  /* Barra horizontal que cresce da esquerda para a direita. */
+  .motion-grow-x {
+    animation: motion-grow-x var(--motion-chart) var(--ease-out) both;
+    animation-delay: calc(var(--enter-index, 0) * 60ms);
+    transform-origin: left center;
+  }
+
+  /* Cartão interativo: sobe de leve e a borda acende. */
+  .motion-card {
+    transition:
+      transform var(--motion-hover) var(--ease-out),
+      border-color var(--motion-hover) var(--ease-out),
+      background-color var(--motion-hover) var(--ease-out),
+      box-shadow var(--motion-hover) var(--ease-out);
+  }
+
+  /* Enquanto o servidor recalcula o período: o conteúdo continua legível. */
+  .motion-pending {
+    opacity: 0.55;
+    filter: saturate(0.85);
+    transition:
+      opacity var(--motion-content) var(--ease-out),
+      filter var(--motion-content) var(--ease-out);
+  }
+}
+
+@keyframes motion-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes motion-grow-x {
+  from {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Brilho discreto do skeleton: percorre o bloco sem piscar. */
+@keyframes motion-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/*
+ * Quem pediu menos movimento recebe menos movimento — sem perder informação:
+ * tudo aparece no estado final, apenas sem o trajeto até ele.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .motion-enter,
+  .motion-grow-x {
+    animation-delay: 0ms !important;
   }
 }
 

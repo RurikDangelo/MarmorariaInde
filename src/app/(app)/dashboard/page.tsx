@@ -19,10 +19,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { requirePermission } from '@/lib/auth/session'
 import { createClient } from '@/lib/supabase/server'
-import { cn, formatArea, formatCurrency, formatDate, formatNumber } from '@/lib/utils'
+import { formatArea, formatCurrency, formatNumber } from '@/lib/utils'
 import { getDashboardData, resolvePeriod, type PeriodKey } from '@/features/dashboard/queries'
 import { CashflowChart } from '@/features/dashboard/components/cashflow-chart'
-import { StatusBadge } from '@/components/shared/status-badge'
+import { StageBreakdown } from '@/features/dashboard/components/stage-breakdown'
+import { AlertsPanel } from '@/features/dashboard/components/alerts-panel'
+import { UpcomingDeliveries } from '@/features/dashboard/components/upcoming-deliveries'
 import type { Alert, WorkOrder } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -67,8 +69,14 @@ export default async function DashboardPage({
       : Promise.resolve({ data: [] as Alert[] }),
   ])
 
+  // Problemas que esta propria consulta ja conhece. Se nao houver alerta
+  // ativo mas estes numeros forem > 0, o painel avisa em vez de dizer que
+  // esta tudo em dia (os avisos podem ter sido dispensados).
+  const knownIssues =
+    data.workOrders.late + (data.financial.overdue > 0 ? 1 : 0) + data.actionPlans.late
+
   const periodLabel = resolvePeriod(period).label
-  const maxStatusCount = Math.max(1, ...data.workOrders.byStatus.map((status) => status.count))
+  const canSeeFinancial = user.permissions.has('financial.read')
 
   return (
     <PageContainer size="wide">
@@ -82,21 +90,23 @@ export default async function DashboardPage({
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="OS em aberto"
-          value={data.workOrders.open}
+          numeric={data.workOrders.open}
           icon={ClipboardList}
           href="/os?situacao=abertas"
           hint={`${data.workOrders.total} no total`}
+          index={0}
         />
         <MetricCard
           label="OS atrasadas"
-          value={data.workOrders.late}
+          numeric={data.workOrders.late}
           icon={CalendarClock}
           tone={data.workOrders.late > 0 ? 'destructive' : 'success'}
           href="/os?situacao=atrasadas"
+          index={1}
         />
         <MetricCard
           label="Finalizadas no período"
-          value={data.workOrders.finished}
+          numeric={data.workOrders.finished}
           icon={ClipboardList}
           tone="success"
           hint={
@@ -104,42 +114,62 @@ export default async function DashboardPage({
               ? `lead time médio ${formatNumber(data.production.avgLeadTimeDays, 1)} dias`
               : undefined
           }
+          index={2}
         />
         <MetricCard
           label="Etapas em produção"
-          value={data.production.inProgress}
+          numeric={data.production.inProgress}
           icon={Hammer}
           tone="info"
           href="/producao"
           hint={data.production.rework > 0 ? `${data.production.rework} retrabalho(s)` : undefined}
+          index={3}
         />
       </section>
 
       {/* Financeiro */}
-      {user.permissions.has('financial.read') && (
+      {canSeeFinancial && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Faturamento" value={formatCurrency(data.financial.revenue)} icon={Banknote} hint={periodLabel.toLowerCase()} />
-          <MetricCard label="Recebido" value={formatCurrency(data.financial.received)} icon={Banknote} tone="success" />
+          <MetricCard
+            label="Faturamento"
+            numeric={data.financial.revenue}
+            format="currency"
+            icon={Banknote}
+            hint={periodLabel.toLowerCase()}
+            index={0}
+          />
+          <MetricCard
+            label="Recebido"
+            numeric={data.financial.received}
+            format="currency"
+            icon={Banknote}
+            tone="success"
+            index={1}
+          />
           <MetricCard
             label="A receber"
-            value={formatCurrency(data.financial.toReceive)}
+            numeric={data.financial.toReceive}
+            format="currency"
             icon={Banknote}
             tone="warning"
             href="/financeiro?tipo=RECEITA&status=PENDENTE"
+            index={2}
           />
           <MetricCard
             label="Vencido"
-            value={formatCurrency(data.financial.overdue)}
+            numeric={data.financial.overdue}
+            format="currency"
             icon={AlertTriangle}
             tone={data.financial.overdue > 0 ? 'destructive' : 'success'}
             href="/financeiro?status=PENDENTE"
+            index={3}
           />
         </section>
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {user.permissions.has('financial.read') && (
-          <Card className="lg:col-span-2">
+        {canSeeFinancial && (
+          <Card className="motion-enter lg:col-span-2" style={{ '--enter-index': 4 } as React.CSSProperties}>
             <CardHeader>
               <CardTitle>Receita e despesa por mês</CardTitle>
               <p className="text-sm text-muted-foreground">Últimos 6 meses, por data de vencimento.</p>
@@ -150,46 +180,28 @@ export default async function DashboardPage({
           </Card>
         )}
 
-        <Card className={user.permissions.has('financial.read') ? undefined : 'lg:col-span-2'}>
+        <Card
+          className={canSeeFinancial ? 'motion-enter' : 'motion-enter lg:col-span-2'}
+          style={{ '--enter-index': 5 } as React.CSSProperties}
+        >
           <CardHeader>
             <CardTitle>OS por etapa</CardTitle>
-            <p className="text-sm text-muted-foreground">Somente ordens em aberto.</p>
+            <p className="text-sm text-muted-foreground">
+              {data.workOrders.open === 0
+                ? 'Somente ordens em aberto.'
+                : data.workOrders.open === 1
+                  ? '1 ordem em aberto no fluxo.'
+                  : `${data.workOrders.open} ordens em aberto no fluxo.`}
+            </p>
           </CardHeader>
           <CardContent>
-            {data.workOrders.open === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma OS em aberto.</p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {data.workOrders.byStatus
-                  .filter((status) => status.count > 0)
-                  .map((status) => (
-                    <li key={status.code}>
-                      <Link
-                        href={`/os?status=${status.code}`}
-                        className="group flex items-center gap-2 text-sm"
-                      >
-                        <span className="w-32 shrink-0 truncate text-muted-foreground group-hover:text-foreground">
-                          {status.label}
-                        </span>
-                        <span className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                          <span
-                            className="block h-full rounded-full bg-primary/70 transition-all"
-                            style={{ width: `${(status.count / maxStatusCount) * 100}%` }}
-                          />
-                        </span>
-                        <span className="w-6 shrink-0 text-right tabular font-medium">{status.count}</span>
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
-            )}
+            <StageBreakdown rows={data.workOrders.byStatus} total={data.workOrders.open} />
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Próximas OS */}
-        <Card className="lg:col-span-2">
+        <Card className="motion-enter lg:col-span-2" style={{ '--enter-index': 6 } as React.CSSProperties}>
           <CardHeader className="flex-row items-center justify-between gap-2">
             <CardTitle>Próximas entregas</CardTitle>
             <Button variant="ghost" size="sm" asChild>
@@ -197,40 +209,12 @@ export default async function DashboardPage({
             </Button>
           </CardHeader>
           <CardContent>
-            {!recentOrders?.length ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma OS em aberto.</p>
-            ) : (
-              <ul className="divide-y">
-                {recentOrders.map((order) => (
-                  <li key={order.id}>
-                    <Link href={`/os/${order.id}`} className="flex items-center gap-3 py-2.5 transition-colors hover:bg-secondary/40">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
-                          {order.number}
-                          <span className="ml-2 font-normal text-muted-foreground">
-                            {order.customer?.name}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.deadline ? `entrega ${formatDate(order.deadline)}` : 'sem prazo'}
-                          {order.title ? ` · ${order.title}` : ''}
-                        </p>
-                      </div>
-                      <StatusBadge label={order.status?.label ?? order.status_code} color={order.status?.color} />
-                      <span className="hidden w-24 text-right text-sm tabular sm:block">
-                        {formatCurrency(order.total_value)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <UpcomingDeliveries orders={recentOrders ?? []} />
           </CardContent>
         </Card>
 
-        {/* Alertas */}
         {user.permissions.has('alerts.read') && (
-          <Card>
+          <Card className="motion-enter" style={{ '--enter-index': 7 } as React.CSSProperties}>
             <CardHeader className="flex-row items-center justify-between gap-2">
               <CardTitle>Alertas</CardTitle>
               <Button variant="ghost" size="sm" asChild>
@@ -238,36 +222,7 @@ export default async function DashboardPage({
               </Button>
             </CardHeader>
             <CardContent>
-              {!alerts?.length ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Nada pendente. Tudo em dia.</p>
-              ) : (
-                <ul className="flex flex-col gap-2.5">
-                  {alerts.map((alert) => (
-                    <li key={alert.id} className="flex gap-2.5">
-                      <span
-                        className={cn(
-                          'mt-1.5 size-2 shrink-0 rounded-full',
-                          alert.severity === 'CRITICO' && 'bg-destructive',
-                          alert.severity === 'ATENCAO' && 'bg-warning',
-                          alert.severity === 'INFO' && 'bg-info',
-                        )}
-                      />
-                      <div className="min-w-0">
-                        {alert.href ? (
-                          <Link href={alert.href} className="text-sm font-medium hover:underline">
-                            {alert.title}
-                          </Link>
-                        ) : (
-                          <p className="text-sm font-medium">{alert.title}</p>
-                        )}
-                        {alert.description && (
-                          <p className="truncate text-xs text-muted-foreground">{alert.description}</p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <AlertsPanel alerts={alerts ?? []} knownIssues={knownIssues} />
             </CardContent>
           </Card>
         )}
@@ -276,26 +231,42 @@ export default async function DashboardPage({
       {/* Estoque e desperdício */}
       {user.permissions.has('stock.read') && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Chapas disponíveis" value={data.stock.availableSlabs} icon={Layers} href="/estoque" />
-          <MetricCard label="Material reservado" value={data.stock.reservedSlabs} icon={Layers} tone="warning" />
+          <MetricCard
+            label="Chapas disponíveis"
+            numeric={data.stock.availableSlabs}
+            icon={Layers}
+            href="/estoque"
+            index={0}
+          />
+          <MetricCard
+            label="Material reservado"
+            numeric={data.stock.reservedSlabs}
+            icon={Layers}
+            tone="warning"
+            index={1}
+          />
           <MetricCard
             label="Consumido no período"
-            value={formatArea(data.stock.consumedArea)}
+            numeric={data.stock.consumedArea}
+            format="area"
             icon={Layers}
             tone="info"
+            index={2}
           />
           <MetricCard
             label="Desperdício"
-            value={`${formatNumber(data.stock.wastePct, 1)}%`}
+            numeric={data.stock.wastePct}
+            format="percent"
             icon={TrendingDown}
             tone={data.stock.wastePct > 10 ? 'destructive' : 'success'}
             hint={`${formatArea(data.stock.lostArea)} · ${formatCurrency(data.stock.lostCost)}`}
+            index={3}
           />
         </section>
       )}
 
       {user.permissions.has('action_plans.read') && data.actionPlans.open > 0 && (
-        <Card>
+        <Card className="motion-enter" style={{ '--enter-index': 8 } as React.CSSProperties}>
           <CardContent className="flex flex-wrap items-center gap-3 pt-5">
             <ListChecks className="size-5 text-muted-foreground" />
             <p className="text-sm">
