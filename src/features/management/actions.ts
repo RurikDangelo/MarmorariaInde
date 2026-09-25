@@ -98,7 +98,8 @@ export async function dismissAlert(id: string): Promise<ActionState> {
 
   revalidatePath('/alertas')
   revalidatePath('/dashboard')
-  return { success: 'Alerta dispensado.' }
+  // Deixa claro que dispensar não resolve: o aviso volta se o problema continuar.
+  return { success: 'Alerta dispensado por hoje. Volta amanhã se o problema continuar.' }
 }
 
 export async function recalculateAlerts(): Promise<ActionState> {

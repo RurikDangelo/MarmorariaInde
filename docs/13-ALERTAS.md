@@ -28,9 +28,27 @@ Não depende de cron nem de job externo.
 
 ## Dispensar
 
-Quem tem `alerts.write` pode dispensar um alerta (`dismissed_at`). Alertas automáticos
-dispensados voltam se a condição continuar valendo após o próximo recálculo — o que é o
-comportamento correto: o problema não sumiu porque alguém fechou o aviso.
+Quem tem `alerts.write` pode dispensar um alerta (`dismissed_at`).
+
+**A dispensa vale até o fim do dia.** No dia seguinte, se a condição ainda existir, o
+alerta reaparece — o problema não sumiu porque alguém fechou o aviso. O recálculo limpa
+o `dismissed_at` quando ele é de um dia anterior (fuso `America/Sao_Paulo`).
+
+Duas alternativas foram descartadas:
+
+- *Voltar no próximo recálculo*: o recálculo roda a cada abertura do dashboard, então a
+  dispensa duraria segundos e o botão perderia o sentido.
+- *Voltar só quando a severidade sobe*: uma OS que fica atrasada por semanas nunca mais
+  avisaria.
+
+> Até a migration `0027` a dispensa era **definitiva** — um problema real ficava em
+> silêncio para sempre depois de um clique. Este documento descrevia o comportamento
+> pretendido, não o implementado.
+
+O painel do dashboard também não trata "sem alerta ativo" como "sem problema": se os
+próprios números da tela apontam pendências (OS atrasada, título vencido, plano
+atrasado) e não há alerta ativo, ele informa quantas estão sem aviso em vez de dizer que
+está tudo em dia.
 
 ## Onde aparecem
 
