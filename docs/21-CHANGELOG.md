@@ -11,7 +11,7 @@ linguagem de movimento única. Detalhes em [12 — Dashboard](12-DASHBOARD.md).
 ### Corrigido
 
 - **Trocar o período desmontava o dashboard inteiro.** A navegação não estava em
-  , então o Next descartava a tela e exibia o esqueleto a cada
+  `startTransition`, então o Next descartava a tela e exibia o esqueleto a cada
   mudança. Agora a tela permanece e só os números transicionam.
 - Eixo do gráfico imprimia **"1 mil" em dois traços diferentes** (1.050 e 1.400
   arredondavam igual). Passou a usar uma casa decimal: "1,1 mil" e "1,4 mil".
@@ -22,10 +22,10 @@ linguagem de movimento única. Detalhes em [12 — Dashboard](12-DASHBOARD.md).
 
 ### Alterado
 
-- **Paleta dos gráficos** derivada do verde da marca: receita /,
-  despesa /. Despesa é azul e não vermelho por duas razões —
+- **Paleta dos gráficos** derivada do verde da marca: receita `#05913A`/`#18A94E`,
+  despesa `#2563EB`/`#3B82F6`. Despesa é azul e não vermelho por duas razões —
   verde × vermelho tem ΔE 6,5 em deuteranopia (some), e vermelho no sistema
-  significa estado ruim, não gasto normal. O verde puro da marca () ficou
+  significa estado ruim, não gasto normal. O verde puro da marca (`#05ad46`) ficou
   de fora por ter contraste 2,89:1 no tema claro, abaixo do mínimo de 3:1.
 - Receita × despesa: legenda com total por série, hover que destaca o mês e recua
   os demais, tooltip com saldo.
@@ -36,7 +36,7 @@ linguagem de movimento única. Detalhes em [12 — Dashboard](12-DASHBOARD.md).
 
 ### Acessibilidade
 
--  zera as animações no CSS e desliga as controladas em
+- `prefers-reduced-motion` zera as animações no CSS e desliga as controladas em
   JavaScript (Recharts, count-up), sem esconder informação.
 - Severidade de alerta e prazo de entrega passam a ser ditos em ícone e texto, não
   só em cor.
