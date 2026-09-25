@@ -7,33 +7,36 @@ const SEVERITY = {
   CRITICO: {
     label: 'Crítico',
     icon: AlertTriangle,
-    dot: 'bg-destructive',
-    chip: 'bg-destructive/12 text-destructive',
     rail: 'bg-destructive',
+    chip: 'bg-destructive/12 text-destructive ring-destructive/20',
+    surface: 'bg-destructive/[0.06] hover:bg-destructive/[0.1]',
   },
   ATENCAO: {
     label: 'Atenção',
     icon: Bell,
-    dot: 'bg-warning',
-    chip: 'bg-warning/16 text-warning',
     rail: 'bg-warning',
+    chip: 'bg-warning/14 text-warning ring-warning/25',
+    surface: 'bg-warning/[0.06] hover:bg-warning/[0.1]',
   },
   INFO: {
     label: 'Informativo',
     icon: Info,
-    dot: 'bg-info',
-    chip: 'bg-info/12 text-info',
     rail: 'bg-info',
+    chip: 'bg-info/12 text-info ring-info/20',
+    surface: 'bg-info/[0.06] hover:bg-info/[0.1]',
   },
 } as const
 
 /**
  * Alertas do dashboard.
  *
- * Severidade não é transmitida só por cor: cada item tem ícone e rótulo, para
- * quem não distingue vermelho de amarelo. A entrada é escalonada e acontece
- * uma vez — nada pisca em laço para "chamar atenção"; o que é crítico se
- * destaca pela posição e pelo peso visual, não por movimento repetido.
+ * Cada alerta é um bloco com trilho lateral colorido, ícone em recipiente e
+ * fundo levemente tingido pela severidade — dá para varrer a coluna e saber o
+ * que é grave sem ler. Severidade também tem ícone e rótulo acessível: quem
+ * não distingue vermelho de amarelo continua recebendo a informação.
+ *
+ * A entrada é escalonada e acontece uma vez. Nada pisca em laço: o que é
+ * crítico se destaca pela posição e pelo peso visual, não por movimento.
  */
 export function AlertsPanel({
   alerts,
@@ -51,19 +54,19 @@ export function AlertsPanel({
   if (!alerts.length) {
     if (knownIssues > 0) {
       return (
-        <div className="motion-enter flex flex-col items-center justify-center gap-2 py-10 text-center">
-          <span className="flex size-10 items-center justify-center rounded-full bg-warning/14">
-            <BellOff className="size-5 text-warning" />
+        <div className="motion-enter flex flex-col items-center justify-center gap-2.5 py-12 text-center">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-warning/14 ring-1 ring-inset ring-warning/25">
+            <BellOff className="size-6 text-warning" />
           </span>
-          <p className="text-sm font-medium">
-            {knownIssues === 1 ? '1 pendência sem aviso ativo' : `${knownIssues} pendências sem aviso ativo`}
+          <p className="mt-1 text-base font-semibold">
+            {knownIssues === 1 ? '1 pendência sem aviso' : `${knownIssues} pendências sem aviso`}
           </p>
-          <p className="max-w-[16rem] text-xs text-muted-foreground">
-            Os alertas correspondentes foram dispensados. Os números acima continuam valendo.
+          <p className="max-w-[17rem] text-sm text-muted-foreground">
+            Os alertas foram dispensados hoje. Os números acima continuam valendo.
           </p>
           <Link
             href="/alertas"
-            className="mt-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+            className="mt-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
             Abrir central de alertas
           </Link>
@@ -72,12 +75,12 @@ export function AlertsPanel({
     }
 
     return (
-      <div className="motion-enter flex flex-col items-center justify-center gap-2 py-10 text-center">
-        <span className="flex size-10 items-center justify-center rounded-full bg-success/12">
-          <CheckCircle2 className="size-5 text-success" />
+      <div className="motion-enter flex flex-col items-center justify-center gap-2.5 py-12 text-center">
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-success/12 ring-1 ring-inset ring-success/20">
+          <CheckCircle2 className="size-6 text-success" />
         </span>
-        <p className="text-sm font-medium">Nada pendente</p>
-        <p className="max-w-[15rem] text-xs text-muted-foreground">
+        <p className="mt-1 text-base font-semibold">Nada pendente</p>
+        <p className="max-w-[16rem] text-sm text-muted-foreground">
           Prazos, estoque, pagamentos e medições estão em dia.
         </p>
       </div>
@@ -91,21 +94,28 @@ export function AlertsPanel({
   })
 
   return (
-    <ul className="flex flex-col gap-1">
+    <ul className="flex flex-col gap-2">
       {ordered.map((alert, index) => {
         const config = SEVERITY[alert.severity] ?? SEVERITY.INFO
         const Icon = config.icon
+
         const body = (
           <>
+            <span className={cn('absolute inset-y-0 left-0 w-1', config.rail)} aria-hidden />
+
             <span
-              className={cn('absolute inset-y-1 left-0 w-0.5 rounded-full opacity-70', config.rail)}
-              aria-hidden
-            />
-            <Icon className={cn('mt-0.5 size-4 shrink-0', config.chip.split(' ')[1])} aria-hidden />
+              className={cn(
+                'flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset',
+                config.chip,
+              )}
+            >
+              <Icon className="size-4.5" />
+            </span>
+
             <span className="min-w-0 flex-1">
               <span className="flex flex-wrap items-baseline gap-x-2">
-                <span className="text-sm font-medium">{alert.title}</span>
-                <span className="text-[11px] text-muted-foreground">{formatRelative(alert.created_at)}</span>
+                <span className="text-sm font-semibold">{alert.title}</span>
+                <span className="text-xs text-muted-foreground">{formatRelative(alert.created_at)}</span>
               </span>
               {alert.description && (
                 <span className="mt-0.5 block truncate text-xs text-muted-foreground">
@@ -114,13 +124,19 @@ export function AlertsPanel({
               )}
               <span className="sr-only">Severidade: {config.label}</span>
             </span>
+
             {alert.href && (
               <ArrowRight
-                className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/0 transition-colors duration-[var(--motion-hover)] group-hover:text-muted-foreground"
+                className="size-4 shrink-0 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-[var(--motion-hover)] group-hover:translate-x-0 group-hover:opacity-100"
                 aria-hidden
               />
             )}
           </>
+        )
+
+        const shell = cn(
+          'relative flex items-center gap-3 overflow-hidden rounded-xl py-3 pl-4 pr-3 transition-colors duration-[var(--motion-hover)]',
+          config.surface,
         )
 
         return (
@@ -132,12 +148,12 @@ export function AlertsPanel({
             {alert.href ? (
               <Link
                 href={alert.href}
-                className="group relative flex gap-2.5 rounded-md py-1.5 pl-3 pr-1.5 transition-colors duration-[var(--motion-hover)] hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className={cn('group', shell, 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
               >
                 {body}
               </Link>
             ) : (
-              <div className="relative flex gap-2.5 py-1.5 pl-3 pr-1.5">{body}</div>
+              <div className={shell}>{body}</div>
             )}
           </li>
         )

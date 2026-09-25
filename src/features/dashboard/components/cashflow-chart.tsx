@@ -1,7 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
 import { usePrefersReducedMotion } from '@/lib/hooks/use-prefers-reduced-motion'
 
@@ -52,16 +61,28 @@ function CashflowTooltip({
   return (
     <div
       role="tooltip"
-      className="animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-1 min-w-44 rounded-lg border bg-popover/98 p-3 shadow-lg backdrop-blur duration-[var(--motion-micro)]"
+      className={cn(
+        'animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2 duration-[var(--motion-micro)]',
+        // Vidro: aqui faz sentido, é elemento flutuante sobre o gráfico.
+        'min-w-[13.5rem] rounded-xl border border-border-strong bg-popover/80 p-3.5 shadow-[var(--shadow-lift)] backdrop-blur-xl',
+      )}
     >
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-eyebrow mb-3 text-muted-foreground">{label}</p>
 
-      <dl className="flex flex-col gap-1.5 text-sm">
+      <dl className="flex flex-col gap-2">
         {SERIES.map((series) => (
-          <div key={series.key} className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full" style={{ background: series.color }} aria-hidden />
-            <dt className="text-muted-foreground">{series.label}</dt>
-            <dd className="ml-auto tabular font-medium">
+          <div key={series.key} className="flex items-center gap-2.5">
+            <span
+              className="size-2.5 shrink-0 rounded-full ring-2"
+              style={{
+                background: series.color,
+                // @ts-expect-error -- custom property aceita string
+                '--tw-ring-color': `color-mix(in oklab, ${series.color} 25%, transparent)`,
+              }}
+              aria-hidden
+            />
+            <dt className="text-sm text-muted-foreground">{series.label}</dt>
+            <dd className="ml-auto text-sm font-semibold tabular">
               {formatCurrency(series.key === 'receita' ? receita : despesa)}
             </dd>
           </div>
@@ -70,10 +91,15 @@ function CashflowTooltip({
 
       {/* Saldo só aparece quando há os dois lados: senão repete a linha de cima. */}
       {receita > 0 && despesa > 0 && (
-        <div className="mt-2 flex items-center gap-2 border-t pt-2 text-sm">
-          <dt className="text-muted-foreground">Saldo</dt>
-          <dd className={cn('ml-auto tabular font-semibold', saldo >= 0 ? 'text-success' : 'text-destructive')}>
-            {saldo >= 0 ? '+' : '−'}
+        <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+          <dt className="text-sm text-muted-foreground">Saldo</dt>
+          <dd
+            className={cn(
+              'ml-auto inline-flex items-center gap-1 text-sm font-bold tabular',
+              saldo >= 0 ? 'text-success' : 'text-destructive',
+            )}
+          >
+            {saldo >= 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
             {formatCurrency(Math.abs(saldo))}
           </dd>
         </div>
@@ -83,16 +109,17 @@ function CashflowTooltip({
 }
 
 /**
- * Receita x despesa por mês. Duas séries, um eixo só.
+ * Receita x despesa por mês — área com gradiente, um eixo só.
+ *
+ * Área e não barra: com seis meses o que importa é a *trajetória* do caixa, e
+ * a linha mostra isso de relance. A barra mostrava seis valores isolados.
  *
  * As cores vêm de --chart-1/--chart-2, validadas para daltonismo e contraste
  * nos dois temas (ver docs/12-DASHBOARD.md). Verde é receita porque é a cor da
  * marca; despesa é azul, não vermelho — vermelho fica reservado para o que
- * está realmente ruim (vencido, atrasado), e verde x vermelho é justamente o
- * par que some na deuteranopia.
+ * está realmente ruim, e verde x vermelho é o par que some na deuteranopia.
  */
 export function CashflowChart({ data }: { data: CashflowPoint[] }) {
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
   const reducedMotion = usePrefersReducedMotion()
 
   const totals = React.useMemo(
@@ -108,102 +135,121 @@ export function CashflowChart({ data }: { data: CashflowPoint[] }) {
   )
 
   // Remontar quando os dados mudam de verdade é o que dispara a animação de
-  // entrada de novo — e só aí. Trocar de aba ou passar o mouse não reanima.
+  // desenho de novo — e só aí. Passar o mouse não redesenha.
   const dataSignature = React.useMemo(
     () => data.map((point) => `${point.month}:${point.receita}:${point.despesa}`).join('|'),
     [data],
   )
 
+  const saldo = totals.receita - totals.despesa
   const empty = totals.receita === 0 && totals.despesa === 0
 
   if (empty) {
     return (
-      <div className="motion-enter flex h-[230px] flex-col items-center justify-center gap-1 rounded-md border border-dashed text-center">
-        <p className="text-sm font-medium">Sem lançamentos no período</p>
-        <p className="text-xs text-muted-foreground">
-          Os valores aparecem aqui conforme as contas forem lançadas.
+      <div className="flex h-[320px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-center">
+        <p className="text-base font-semibold">Sem lançamentos no período</p>
+        <p className="max-w-xs text-sm text-muted-foreground">
+          Assim que houver contas a receber ou a pagar, a evolução do caixa aparece aqui.
         </p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Legenda com o total de cada série: informa, não só identifica. */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-        {SERIES.map((series) => (
-          <div key={series.key} className="flex items-baseline gap-2">
+    <div className="flex flex-col gap-5">
+      {/* Resumo do período: identifica as séries e já entrega o número. */}
+      <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
+        {SERIES.map((series) => {
+          const total = series.key === 'receita' ? totals.receita : totals.despesa
+          return (
+            <div key={series.key} className="flex flex-col gap-1">
+              <span className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: series.color }} aria-hidden />
+                <span className="text-eyebrow text-muted-foreground">{series.label}</span>
+              </span>
+              <span className="text-metric-sm">{formatCurrency(total)}</span>
+            </div>
+          )
+        })}
+
+        {/* Saldo só quando existem os dois lados. */}
+        {totals.receita > 0 && totals.despesa > 0 && (
+          <div className="flex flex-col gap-1 border-l border-border pl-8">
+            <span className="text-eyebrow text-muted-foreground">Saldo</span>
             <span
-              className="size-2.5 shrink-0 translate-y-[-1px] rounded-full"
-              style={{ background: series.color }}
-              aria-hidden
-            />
-            <span className="text-xs text-muted-foreground">{series.label}</span>
-            <span className="tabular text-sm font-medium">
-              {formatCurrency(series.key === 'receita' ? totals.receita : totals.despesa)}
+              className={cn(
+                'text-metric-sm inline-flex items-center gap-1.5',
+                saldo >= 0 ? 'text-success' : 'text-destructive',
+              )}
+            >
+              {saldo >= 0 ? <TrendingUp className="size-5" /> : <TrendingDown className="size-5" />}
+              {formatCurrency(Math.abs(saldo))}
             </span>
           </div>
-        ))}
+        )}
       </div>
 
-      <ResponsiveContainer width="100%" height={230}>
-        <BarChart
-          key={dataSignature}
-          data={data}
-          margin={{ top: 8, right: 4, left: -14, bottom: 0 }}
-          barGap={2}
-          onMouseMove={(state) =>
-            setActiveIndex(typeof state?.activeTooltipIndex === 'number' ? state.activeTooltipIndex : null)
-          }
-          onMouseLeave={() => setActiveIndex(null)}
-        >
-          <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.6} strokeDasharray="2 6" />
+      {totals.despesa === 0 && (
+        <p className="-mt-2 text-sm text-muted-foreground">
+          Sem despesas registradas no período — a área azul aparece quando houver contas a pagar.
+        </p>
+      )}
+
+      <ResponsiveContainer width="100%" height={300}>
+        <AreaChart key={dataSignature} data={data} margin={{ top: 10, right: 8, left: -10, bottom: 0 }}>
+          <defs>
+            {SERIES.map((series) => (
+              <linearGradient key={series.key} id={`fill-${series.key}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={series.color} stopOpacity={0.35} />
+                <stop offset="60%" stopColor={series.color} stopOpacity={0.08} />
+                <stop offset="100%" stopColor={series.color} stopOpacity={0} />
+              </linearGradient>
+            ))}
+          </defs>
+
+          <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.55} strokeDasharray="2 7" />
           <XAxis
             dataKey="month"
             tickLine={false}
             axisLine={false}
-            tickMargin={8}
-            tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+            tickMargin={12}
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 12, fontWeight: 500 }}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
-            width={62}
-            tickMargin={4}
+            width={64}
+            tickMargin={6}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
             tickFormatter={shortCurrency}
           />
           <Tooltip
-            cursor={{ fill: 'var(--foreground)', opacity: 0.04 }}
+            cursor={{ stroke: 'var(--border-strong)', strokeWidth: 1, strokeDasharray: '4 4' }}
             content={<CashflowTooltip />}
             wrapperStyle={{ outline: 'none' }}
             animationDuration={reducedMotion ? 0 : 150}
           />
 
-          {SERIES.map((series) => (
-            <Bar
+          {SERIES.map((series, order) => (
+            <Area
               key={series.key}
+              type="monotone"
               dataKey={series.key}
               name={series.label}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={28}
+              stroke={series.color}
+              strokeWidth={2.5}
+              fill={`url(#fill-${series.key})`}
+              // Ponto sempre visível: com um mês só de dados, sem ponto não
+              // haveria nada para ver — a linha precisaria de dois pontos.
+              dot={{ r: 3, fill: 'var(--card)', stroke: series.color, strokeWidth: 2 }}
+              activeDot={{ r: 6, fill: series.color, stroke: 'var(--card)', strokeWidth: 3 }}
               isAnimationActive={!reducedMotion}
-              animationDuration={700}
+              animationDuration={1000}
+              animationBegin={order * 120}
               animationEasing="ease-out"
-            >
-              {data.map((point, index) => (
-                <Cell
-                  key={point.month}
-                  fill={series.color}
-                  // Mês sob o cursor mantém 100%; os outros recuam — o olho
-                  // vai direto para o período que está sendo lido.
-                  fillOpacity={activeIndex === null || activeIndex === index ? 1 : 0.28}
-                  style={{ transition: 'fill-opacity var(--motion-hover) var(--ease-out)' }}
-                />
-              ))}
-            </Bar>
+            />
           ))}
-        </BarChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   )

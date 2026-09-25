@@ -44,7 +44,10 @@ export function Topbar({
   signOutAction,
 }: TopbarProps) {
   const [menuOpen, setMenuOpen] = React.useState(false)
-  const { theme, setTheme } = useTheme()
+  // resolvedTheme e nao theme: com a empresa configurada em "system", `theme`
+  // vale "system" e a comparacao com "dark" dava sempre falso — o botao
+  // definia "dark" de novo e a tela nao mudava.
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/85 px-3 backdrop-blur sm:px-4 print:hidden">
@@ -93,7 +96,7 @@ export function Topbar({
           variant="ghost"
           size="icon"
           aria-label="Alternar tema"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
         >
           <Sun className="size-4 dark:hidden" />
           <Moon className="hidden size-4 dark:block" />

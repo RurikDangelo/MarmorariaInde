@@ -11,13 +11,17 @@ etapas em produção (com retrabalhos).
 ### Financeiro (`financial.read`)
 Faturamento · recebido · a receber · vencido.
 
-### Receita e despesa por mês
-Barras agrupadas, 6 meses, por data de vencimento. Duas séries, um eixo.
-A legenda mostra o **total de cada série no período** — identifica e informa ao mesmo
-tempo. No hover, o mês apontado fica em 100% e os demais recuam para 28%: o olho vai
-direto para o período que está sendo lido. O tooltip traz mês, receita, despesa e o
-**saldo** (só quando existem os dois lados; com um lado só, o saldo repetiria a linha
-de cima).
+### Evolução do caixa
+Área com gradiente, 6 meses, por data de vencimento. Duas séries, um eixo.
+
+Área e não barra: com seis meses o que importa é a **trajetória** do caixa, e a linha
+mostra isso de relance — a barra mostrava seis valores isolados. Os pontos ficam sempre
+visíveis porque, com um mês só de dados, uma linha sem ponto não desenharia nada.
+
+Acima do gráfico, o total de cada série e o saldo do período em tipo grande. O tooltip
+(vidro, com blur) traz mês, receita, despesa e o **saldo** — este só quando existem os
+dois lados, senão repetiria a linha de cima. Quando não há despesa no período, uma nota
+explica a ausência da área azul em vez de deixar o espaço mudo.
 
 ### OS por etapa
 Barra horizontal proporcional (não é pizza). Nove etapas em pizza é ilegível; a barra
@@ -69,6 +73,39 @@ superfície — nos dois temas, com passos próprios para cada um.
 
 O verde da marca puro (`#05ad46`) tem contraste 2,89:1 sobre o fundo claro, abaixo do
 mínimo de 3:1. Por isso a série usa uma versão escurecida dele no tema claro.
+
+## Hierarquia visual
+
+O dashboard usa três degraus de tipografia, declarados como utilitários em
+`globals.css` — não valores soltos por componente:
+
+| Utilitário | Uso | Tamanho |
+|---|---|---|
+| `.text-display` | título da página | 28–32 px / 700 |
+| `.text-metric` | número do KPI | 28–34 px / 700, `tabular-nums` |
+| `.text-metric-sm` | totais do gráfico | 24 px / 700 |
+| `.text-eyebrow` | rótulo acima do número, títulos de seção | 11 px / 600, caixa alta |
+
+O salto entre rótulo e valor é grande de propósito: o número é o que a pessoa veio ver.
+Antes rótulo e valor estavam a poucos pixels de distância e o cartão inteiro lia como
+um bloco de texto cinza.
+
+## Profundidade
+
+O tema escuro tem **três superfícies** em vez de uma:
+
+| Token | Uso |
+|---|---|
+| `--background` | fundo da página (quase preto) |
+| `--surface` | blocos dentro de um cartão (linhas de entrega, hover de lista) |
+| `--card` | cartões e painéis |
+
+Em tela escura a sombra praticamente não aparece; o que cria relevo é a diferença de
+luminosidade. Sobre o fundo há ainda dois halos radiais amplos a 3% e 2,5% de opacidade
+(`body::before`, fixos) — sem eles a tela lê como uma folha chapada.
+
+A borda segue a mesma lógica: `--border` quase invisível em repouso e `--border-strong`
+só no hover e no foco, para o cartão reagir sem ficar "encaixotado".
 
 ## Linguagem de movimento
 

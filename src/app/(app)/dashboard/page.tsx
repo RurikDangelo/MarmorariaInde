@@ -9,9 +9,12 @@ import {
   Hammer,
   Layers,
   ListChecks,
+  PackageCheck,
+  Ruler,
   TrendingDown,
+  Wallet,
 } from 'lucide-react'
-import { PageContainer, PageHeader } from '@/components/shared/page-header'
+import { PageContainer } from '@/components/shared/page-header'
 import { MetricCard } from '@/components/shared/metric-card'
 import { PeriodFilter } from '@/components/shared/filters'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,6 +28,7 @@ import { CashflowChart } from '@/features/dashboard/components/cashflow-chart'
 import { StageBreakdown } from '@/features/dashboard/components/stage-breakdown'
 import { AlertsPanel } from '@/features/dashboard/components/alerts-panel'
 import { UpcomingDeliveries } from '@/features/dashboard/components/upcoming-deliveries'
+import { DashboardHeader, SectionHeading } from '@/features/dashboard/components/dashboard-shell'
 import type { Alert, WorkOrder } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Dashboard' }
@@ -69,123 +73,161 @@ export default async function DashboardPage({
       : Promise.resolve({ data: [] as Alert[] }),
   ])
 
-  // Problemas que esta propria consulta ja conhece. Se nao houver alerta
-  // ativo mas estes numeros forem > 0, o painel avisa em vez de dizer que
-  // esta tudo em dia (os avisos podem ter sido dispensados).
+  // Problemas que esta propria consulta ja conhece. Se nao houver alerta ativo
+  // mas estes numeros forem > 0, o painel avisa em vez de dizer que esta tudo
+  // em dia (os avisos podem ter sido dispensados hoje).
   const knownIssues =
     data.workOrders.late + (data.financial.overdue > 0 ? 1 : 0) + data.actionPlans.late
 
   const periodLabel = resolvePeriod(period).label
   const canSeeFinancial = user.permissions.has('financial.read')
 
+  const updatedAt = new Date().toLocaleTimeString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  const recebidoPct =
+    data.financial.revenue > 0 ? (data.financial.received / data.financial.revenue) * 100 : 0
+
   return (
-    <PageContainer size="wide">
-      <PageHeader
+    <PageContainer size="wide" className="gap-8 py-7 sm:py-8">
+      <DashboardHeader
         title="Visão geral"
-        description={`Como a marmoraria está hoje · ${periodLabel.toLowerCase()}`}
-        actions={<PeriodFilter />}
+        description="Acompanhe o desempenho da marmoraria e os principais indicadores operacionais."
+        updatedAt={updatedAt}
+        periodLabel={periodLabel.toLowerCase()}
+        action={<PeriodFilter />}
       />
 
-      {/* Operação */}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="OS em aberto"
-          numeric={data.workOrders.open}
-          icon={ClipboardList}
-          href="/os?situacao=abertas"
-          hint={`${data.workOrders.total} no total`}
-          index={0}
-        />
-        <MetricCard
-          label="OS atrasadas"
-          numeric={data.workOrders.late}
-          icon={CalendarClock}
-          tone={data.workOrders.late > 0 ? 'destructive' : 'success'}
-          href="/os?situacao=atrasadas"
-          index={1}
-        />
-        <MetricCard
-          label="Finalizadas no período"
-          numeric={data.workOrders.finished}
-          icon={ClipboardList}
-          tone="success"
-          hint={
-            data.production.avgLeadTimeDays
-              ? `lead time médio ${formatNumber(data.production.avgLeadTimeDays, 1)} dias`
-              : undefined
-          }
-          index={2}
-        />
-        <MetricCard
-          label="Etapas em produção"
-          numeric={data.production.inProgress}
-          icon={Hammer}
-          tone="info"
-          href="/producao"
-          hint={data.production.rework > 0 ? `${data.production.rework} retrabalho(s)` : undefined}
-          index={3}
-        />
-      </section>
-
-      {/* Financeiro */}
-      {canSeeFinancial && (
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {/* ---------------------------------------------------------- operação */}
+      <section className="flex flex-col gap-4">
+        <SectionHeading label="Operação" hint="ordens de serviço no fluxo" index={1} />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Faturamento"
-            numeric={data.financial.revenue}
-            format="currency"
-            icon={Banknote}
-            hint={periodLabel.toLowerCase()}
-            index={0}
-          />
-          <MetricCard
-            label="Recebido"
-            numeric={data.financial.received}
-            format="currency"
-            icon={Banknote}
-            tone="success"
-            index={1}
-          />
-          <MetricCard
-            label="A receber"
-            numeric={data.financial.toReceive}
-            format="currency"
-            icon={Banknote}
-            tone="warning"
-            href="/financeiro?tipo=RECEITA&status=PENDENTE"
+            label="OS em aberto"
+            numeric={data.workOrders.open}
+            icon={ClipboardList}
+            href="/os?situacao=abertas"
+            hint={`${data.workOrders.total} no total`}
             index={2}
           />
           <MetricCard
-            label="Vencido"
-            numeric={data.financial.overdue}
-            format="currency"
-            icon={AlertTriangle}
-            tone={data.financial.overdue > 0 ? 'destructive' : 'success'}
-            href="/financeiro?status=PENDENTE"
+            label="OS atrasadas"
+            numeric={data.workOrders.late}
+            icon={CalendarClock}
+            tone={data.workOrders.late > 0 ? 'destructive' : 'success'}
+            href="/os?situacao=atrasadas"
+            hint={data.workOrders.late > 0 ? 'precisam de atenção' : 'nenhuma fora do prazo'}
             index={3}
           />
+          <MetricCard
+            label="Finalizadas no período"
+            numeric={data.workOrders.finished}
+            icon={PackageCheck}
+            tone="success"
+            hint={
+              data.production.avgLeadTimeDays
+                ? `lead time médio ${formatNumber(data.production.avgLeadTimeDays, 1)} dias`
+                : periodLabel.toLowerCase()
+            }
+            index={4}
+          />
+          <MetricCard
+            label="Etapas em produção"
+            numeric={data.production.inProgress}
+            icon={Hammer}
+            tone="info"
+            href="/producao"
+            hint={
+              data.production.rework > 0
+                ? `${data.production.rework} retrabalho(s)`
+                : 'sem retrabalho no período'
+            }
+            index={5}
+          />
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------- financeiro */}
+      {canSeeFinancial && (
+        <section className="flex flex-col gap-4">
+          <SectionHeading label="Financeiro" hint={periodLabel.toLowerCase()} index={1} />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Faturamento"
+              numeric={data.financial.revenue}
+              format="currency"
+              icon={Banknote}
+              hint={periodLabel.toLowerCase()}
+              index={2}
+            />
+            <MetricCard
+              label="Recebido"
+              numeric={data.financial.received}
+              format="currency"
+              icon={Wallet}
+              tone="success"
+              hint={
+                data.financial.revenue > 0
+                  ? `${formatNumber(recebidoPct, 0)}% do faturado`
+                  : 'nada faturado ainda'
+              }
+              meter={recebidoPct}
+              index={3}
+            />
+            <MetricCard
+              label="A receber"
+              numeric={data.financial.toReceive}
+              format="currency"
+              icon={CalendarClock}
+              tone="warning"
+              href="/financeiro?tipo=RECEITA&status=PENDENTE"
+              hint="títulos em aberto"
+              index={4}
+            />
+            <MetricCard
+              label="Vencido"
+              numeric={data.financial.overdue}
+              format="currency"
+              icon={AlertTriangle}
+              tone={data.financial.overdue > 0 ? 'destructive' : 'success'}
+              href="/financeiro?status=PENDENTE"
+              hint={data.financial.overdue > 0 ? 'cobrança pendente' : 'nada vencido'}
+              index={5}
+            />
+          </div>
         </section>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      {/* ------------------------------------------------ caixa e distribuição
+          items-start: a lista de etapas tem a altura do próprio conteúdo. Se
+          esticasse até o gráfico, sobraria um vazio enorme sob uma etapa só. */}
+      <div className="grid items-start gap-4 xl:grid-cols-3">
         {canSeeFinancial && (
-          <Card className="motion-enter lg:col-span-2" style={{ '--enter-index': 4 } as React.CSSProperties}>
-            <CardHeader>
-              <CardTitle>Receita e despesa por mês</CardTitle>
-              <p className="text-sm text-muted-foreground">Últimos 6 meses, por data de vencimento.</p>
+          <Card
+            className="motion-enter overflow-hidden xl:col-span-2"
+            style={{ '--enter-index': 6 } as React.CSSProperties}
+          >
+            <CardHeader className="gap-1 px-6 pb-4 pt-6">
+              <CardTitle className="text-lg">Evolução do caixa</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Receita e despesa dos últimos 6 meses, por data de vencimento.
+              </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6">
               <CashflowChart data={data.revenueByMonth} />
             </CardContent>
           </Card>
         )}
 
         <Card
-          className={canSeeFinancial ? 'motion-enter' : 'motion-enter lg:col-span-2'}
-          style={{ '--enter-index': 5 } as React.CSSProperties}
+          className={canSeeFinancial ? 'motion-enter' : 'motion-enter xl:col-span-2'}
+          style={{ '--enter-index': 7 } as React.CSSProperties}
         >
-          <CardHeader>
-            <CardTitle>OS por etapa</CardTitle>
+          <CardHeader className="gap-1 px-6 pb-3 pt-6">
+            <CardTitle className="text-lg">OS por etapa</CardTitle>
             <p className="text-sm text-muted-foreground">
               {data.workOrders.open === 0
                 ? 'Somente ordens em aberto.'
@@ -194,83 +236,103 @@ export default async function DashboardPage({
                   : `${data.workOrders.open} ordens em aberto no fluxo.`}
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 pb-5">
             <StageBreakdown rows={data.workOrders.byStatus} total={data.workOrders.open} />
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="motion-enter lg:col-span-2" style={{ '--enter-index': 6 } as React.CSSProperties}>
-          <CardHeader className="flex-row items-center justify-between gap-2">
-            <CardTitle>Próximas entregas</CardTitle>
+      {/* -------------------------------------------------- entregas e alertas */}
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card
+          className="motion-enter xl:col-span-2"
+          style={{ '--enter-index': 8 } as React.CSSProperties}
+        >
+          <CardHeader className="flex-row items-center justify-between gap-2 px-6 pb-4 pt-6">
+            <div>
+              <CardTitle className="text-lg">Próximas entregas</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">Ordenadas pelo prazo mais próximo.</p>
+            </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/os">Ver todas</Link>
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-5">
             <UpcomingDeliveries orders={recentOrders ?? []} />
           </CardContent>
         </Card>
 
         {user.permissions.has('alerts.read') && (
-          <Card className="motion-enter" style={{ '--enter-index': 7 } as React.CSSProperties}>
-            <CardHeader className="flex-row items-center justify-between gap-2">
-              <CardTitle>Alertas</CardTitle>
+          <Card className="motion-enter" style={{ '--enter-index': 9 } as React.CSSProperties}>
+            <CardHeader className="flex-row items-center justify-between gap-2 px-6 pb-4 pt-6">
+              <div>
+                <CardTitle className="text-lg">Alertas</CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">O que precisa de atenção agora.</p>
+              </div>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/alertas">Ver todos</Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-5">
               <AlertsPanel alerts={alerts ?? []} knownIssues={knownIssues} />
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Estoque e desperdício */}
+      {/* ------------------------------------------------ estoque e desperdício */}
       {user.permissions.has('stock.read') && (
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            label="Chapas disponíveis"
-            numeric={data.stock.availableSlabs}
-            icon={Layers}
-            href="/estoque"
-            index={0}
-          />
-          <MetricCard
-            label="Material reservado"
-            numeric={data.stock.reservedSlabs}
-            icon={Layers}
-            tone="warning"
-            index={1}
-          />
-          <MetricCard
-            label="Consumido no período"
-            numeric={data.stock.consumedArea}
-            format="area"
-            icon={Layers}
-            tone="info"
-            index={2}
-          />
-          <MetricCard
-            label="Desperdício"
-            numeric={data.stock.wastePct}
-            format="percent"
-            icon={TrendingDown}
-            tone={data.stock.wastePct > 10 ? 'destructive' : 'success'}
-            hint={`${formatArea(data.stock.lostArea)} · ${formatCurrency(data.stock.lostCost)}`}
-            index={3}
-          />
+        <section className="flex flex-col gap-4">
+          <SectionHeading label="Estoque e desperdício" hint="chapas e consumo" index={1} />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Chapas disponíveis"
+              numeric={data.stock.availableSlabs}
+              icon={Layers}
+              href="/estoque"
+              hint="prontas para reservar"
+              index={2}
+            />
+            <MetricCard
+              label="Material reservado"
+              numeric={data.stock.reservedSlabs}
+              icon={PackageCheck}
+              tone="warning"
+              hint="comprometido com OS"
+              index={3}
+            />
+            <MetricCard
+              label="Consumido no período"
+              numeric={data.stock.consumedArea}
+              format="area"
+              icon={Ruler}
+              tone="info"
+              hint={periodLabel.toLowerCase()}
+              index={4}
+            />
+            <MetricCard
+              label="Desperdício"
+              numeric={data.stock.wastePct}
+              format="percent"
+              icon={TrendingDown}
+              tone={data.stock.wastePct > 10 ? 'destructive' : 'success'}
+              hint={`${formatArea(data.stock.lostArea)} · ${formatCurrency(data.stock.lostCost)}`}
+              meter={data.stock.wastePct}
+              index={5}
+            />
+          </div>
         </section>
       )}
 
       {user.permissions.has('action_plans.read') && data.actionPlans.open > 0 && (
-        <Card className="motion-enter" style={{ '--enter-index': 8 } as React.CSSProperties}>
-          <CardContent className="flex flex-wrap items-center gap-3 pt-5">
-            <ListChecks className="size-5 text-muted-foreground" />
+        <Card className="motion-enter" style={{ '--enter-index': 10 } as React.CSSProperties}>
+          <CardContent className="flex flex-wrap items-center gap-4 px-6 py-5">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/12 text-accent ring-1 ring-inset ring-accent/20">
+              <ListChecks className="size-5" />
+            </span>
             <p className="text-sm">
-              <span className="font-medium">{data.actionPlans.open}</span> plano(s) de ação em andamento
+              <span className="text-base font-bold">{data.actionPlans.open}</span>{' '}
+              {data.actionPlans.open === 1 ? 'plano de ação' : 'planos de ação'} em andamento
               {data.actionPlans.late > 0 && (
                 <Badge variant="destructive" className="ml-2">
                   {data.actionPlans.late} atrasado(s)
