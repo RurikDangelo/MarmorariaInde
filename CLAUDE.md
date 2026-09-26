@@ -104,6 +104,7 @@ npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 npm run db:push    # aplica supabase/migrations/*.sql
 npm run db:seed    # popula dados DEMO (somente desenvolvimento)
+npm run db:reset   # zera o sistema para entrega ao cliente, mantendo os acessos
 npm run db:test    # testes do banco (TEST_DATABASE_URL = Postgres local descartável)
 npm run db:bundle -- 0020  # .sql único das migrations para o SQL Editor do Supabase
 ```

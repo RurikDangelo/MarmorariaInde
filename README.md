@@ -40,6 +40,7 @@ O primeiro usuário criado no Supabase Auth vira **ADMINISTRADOR** automaticamen
 | `npm run lint` | ESLint |
 | `npm run db:push` | aplica `supabase/migrations/*.sql` |
 | `npm run db:seed` | popula dados DEMO (`-- --limpar` remove) |
+| `npm run db:reset` | zera o sistema para entrega, mantendo acessos (`-- --confirmar` apaga) |
 | `npm run db:test` | testes do banco num Postgres local (`TEST_DATABASE_URL`) |
 | `npm run db:bundle -- 0020` | junta migrations num `.sql` único para o SQL Editor |
 

@@ -3,6 +3,26 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.4] — 2026-09-26
+
+Sistema zerado para entrega ao cliente.
+
+### Adicionado
+
+- **`npm run db:reset`** — apaga todo o movimento e os cadastros alimentados no uso
+  (OS, orçamentos, montagem, clientes, produtos, materiais, estoque, financeiro,
+  alertas, auditoria, arquivos do Storage) e devolve a numeração para `OS-<ano>-0001`.
+  Mantém os logins e a base que as migrations instalam: papéis, permissões, etapas da
+  OS e de produção, tipos de material, categorias e contas financeiras, locais de
+  estoque, listas rápidas e as configurações da empresa.
+  Sem `--confirmar` é ensaio; com `--confirmar` grava antes um JSON em `backups/`.
+  Passo a passo em [19 — Manual do administrador](19-MANUAL-ADMINISTRADOR.md).
+- Duas travas no script: recusa rodar se alguma tabela do banco não estiver
+  classificada como "fica" ou "sai" — tabela criada depois não escapa do reset em
+  silêncio — e confere que o `cascade` do `truncate` não alcança nenhuma tabela da
+  lista de "fica", que levaria junto papéis e permissões.
+- `backups/` no `.gitignore`: o despejo tem nome, documento e telefone de cliente.
+
 ## [0.2.3] — 2026-09-25
 
 Dashboard mais legível: gráficos com interação, números que transicionam e uma

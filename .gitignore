@@ -44,3 +44,6 @@ next-env.d.ts
 
 # pacotes gerados para o SQL Editor (derivados de supabase/migrations)
 /supabase/bundles/
+
+# backup gravado pelo db:reset — tem dado de cliente, nunca vai para o Git
+/backups/

@@ -46,6 +46,35 @@ configurações e permissões. É só leitura — nem o administrador apaga o lo
 npm run db:seed -- --limpar
 ```
 
+### Zerar o sistema para entregar a um cliente
+
+Apaga todo o movimento e os cadastros alimentados no uso — OS, orçamentos, montagem,
+clientes, produtos, materiais, estoque, financeiro, alertas, auditoria e arquivos —
+e devolve a numeração para `OS-<ano>-0001`.
+
+**Fica de pé:** os logins (`auth.users` e `profiles`), papéis, permissões, etapas da OS,
+etapas de produção, tipos de material, categorias e contas financeiras, locais de
+estoque, listas rápidas e as configurações da empresa. Ou seja, tudo que o sistema
+instala sozinho pelas migrations — nada do que foi digitado na tela.
+
+```bash
+npm run db:reset                  # lista o que sairia e o que fica; não apaga
+npm run db:reset -- --confirmar   # apaga
+```
+
+Sem `--confirmar` é só um ensaio. Com `--confirmar`, antes de apagar o script grava
+um JSON de tudo em `backups/` (fora do Git, porque tem dado de cliente).
+
+Duas travas: se existir tabela que o script não classifica como "fica" ou "sai", ele
+recusa a rodar — tabela nova não escapa do reset em silêncio; e se o `cascade` do
+`truncate` fosse alcançar alguma tabela da lista de "fica", ele também para.
+
+Para preservar o catálogo de produtos e materiais, acrescente `--manter-cadastros`.
+
+> Os arquivos do Storage só somem se `SUPABASE_SERVICE_ROLE_KEY` estiver no
+> `.env.local`. Sem ela o banco é limpo do mesmo jeito e o script avisa quantos
+> arquivos ficaram para trás.
+
 ### Aplicar atualizações do banco
 ```bash
 npm run db:push

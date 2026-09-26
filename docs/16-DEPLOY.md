@@ -97,6 +97,8 @@ já foi aplicado em `public.schema_migrations` e é seguro rodar de novo.
 - [ ] `npm run typecheck` e `npm run build` sem erro
 - [ ] Migrations aplicadas (`npm run db:push`)
 - [ ] Dados DEMO removidos (`npm run db:seed -- --limpar`)
+- [ ] Sistema zerado para o cliente (`npm run db:reset -- --confirmar`) — apaga o que
+      foi digitado em testes e mantém os acessos; ver [19](19-MANUAL-ADMINISTRADOR.md)
 - [ ] Variáveis configuradas na Vercel
 - [ ] Funções na mesma região do banco (`x-vercel-id` com `gru1::gru1`)
 - [ ] Redirect URLs configuradas no Supabase
