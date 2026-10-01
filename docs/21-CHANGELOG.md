@@ -3,6 +3,18 @@
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) ·
 Versionamento: [SemVer](https://semver.org/lang/pt-BR/).
 
+## [0.2.5] — 2026-09-30
+
+### Corrigido
+
+- **Nome da empresa sem acento no orçamento.** `company_settings` tinha sido semeada
+  em ASCII pelos defaults da `0002` e a `0012`, que corrigiu a acentuação dos
+  catálogos, não passou por ela. O cabeçalho do orçamento e da OS emitida, as
+  etiquetas e a linha de assinatura saíam com "MARMORARIA INDEPENDENCIA" e
+  "Sao Jose dos Campos". Migration `0028` acerta o valor gravado e o default da
+  coluna. O `update` só troca a linha que ainda está no valor ASCII original —
+  nome digitado pela marmoraria em Configurações não é tocado.
+
 ## [0.2.4] — 2026-09-26
 
 Sistema zerado para entrega ao cliente.

@@ -2,7 +2,7 @@
 
 ## O que é
 
-ERP vertical da **MARMORARIA INDEPENDENCIA** (São José dos Campos/SP, desde 2009,
+ERP vertical da **MARMORARIA INDEPENDÊNCIA** (São José dos Campos/SP, desde 2009,
 granitos e mármores nacionais e importados).
 
 Não é um CRM nem um ERP genérico. É um sistema construído em torno de **um processo**:

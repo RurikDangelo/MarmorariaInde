@@ -1,4 +1,4 @@
-# CLAUDE.md — MARMORARIA INDEPENDENCIA ERP
+# CLAUDE.md — MARMORARIA INDEPENDÊNCIA ERP
 
 > Leia este arquivo **antes de qualquer alteração importante**.
 

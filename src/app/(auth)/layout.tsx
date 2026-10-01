@@ -3,7 +3,7 @@ import { getCompanySettings } from '@/lib/auth/session'
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const settings = await getCompanySettings().catch(() => null)
-  const companyName = settings?.company_name ?? 'MARMORARIA INDEPENDENCIA'
+  const companyName = settings?.company_name ?? 'MARMORARIA INDEPENDÊNCIA'
 
   return (
     <div className="grid min-h-(--screen-h) lg:grid-cols-2">
